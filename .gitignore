@@ -1,0 +1,16 @@
+*.o
+*.hi
+*.*~
+*~
+*.pdf
+*.bbl
+*.toc
+*.aux
+*.blg
+*.log
+*.nav
+*.out
+*.snm
+*.vrb
+code/main
+code/docs

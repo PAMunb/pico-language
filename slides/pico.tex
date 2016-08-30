@@ -1,0 +1,153 @@
+\documentclass{beamer}
+
+\usepackage{listings}
+
+\title{The PICO Programming Language}
+\author{Rodrigo Bonif\'{a}cio}
+
+% Define Language
+\lstdefinelanguage{pico} {
+                    % list of keywords
+                    morekeywords={
+                      begin, end,
+                      if,
+                      while, do, od,
+                      natural, string, declare, then, else
+                    },
+                    sensitive=false, % keywords are not case-sensitive
+                    morecomment=[l]{//}, % l is for line comment
+                    morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+                    morestring=[b]'' % defines that strings are enclosed in double quotes
+                    }
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+
+  \texttt{PICO} is a small programming language
+  formally specified at CWI/Amsterdam~\cite{pico-spec}. 
+  \pause
+  \vskip+2em
+
+  \begin{quote}
+    ``It is so simple that its specification fits on a few pages.''
+  \end{quote}
+  \flushright {\scriptsize{Paul Klint's Course on Advanced Programming}}
+  
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Types and Expressions}
+
+  \begin{block}{Types}
+    \begin{itemize}
+    \item natural numbers
+    \item strings
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Expressions}
+    \begin{itemize}
+    \item (+) and (-) for natural numbers
+    \item ($\|$) for combining two strings  
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Statements}
+
+  \begin{itemize}
+   \item \textsc{if-then} 
+   \item \textsc{if-then-else}
+   \item \textsc{while-do}  
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{block}{A PICO program}  
+\begin{scriptsize}
+  \begin{lstlisting}[language=pico]
+begin
+ declare input: natural, output: natural,
+     repnr: natural, rep : natural;
+
+ input := 14;
+ output := 1;
+
+ while(input - 1) do
+  rep := output;
+  repnr := input;
+  while(repnr - 1) do
+   output := output + rep;
+   repnr := repnr - 1;
+  od
+  input := input - 1;
+ od
+end
+\end{lstlisting}
+\end{scriptsize}
+\end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{What are the elements of a programming language?}
+
+  \pause
+  \begin{block}{Each programming language has}
+  \begin{itemize}
+    \item a (concrete) syntax
+    \item a (well-defined) semantics
+    \item and a set of practices for its use (pragmatics)   
+  \end{itemize}
+  \end{block}
+  \pause
+
+  However, we might say that, to implement a (small) language,
+  all we have to do is to provide an {\color{blue}interpreter} to
+  that language. \pause An interpreter specifies an operational
+  semantics of a language. 
+\end{frame}
+
+\begin{frame}
+
+  Therefore, providing an interpreter for the \textsc{PICO} language
+  is our first task. To this end, we have to {\color{blue}design} a
+  suitable representation of a \textsc{PICO} program and a set
+  of functions to evaluate a \textsc{PICO} program.
+  
+\end{frame}
+
+
+\begin{frame}
+  Our second challenge is to implement some other language
+  processing tools for \textsc{PICO}, such as:
+
+  \begin{itemize}
+   \item parser
+   \item pretty-printer
+   \item a control flow graph generator  
+   \item static analysis for computing metrics
+   \item static analysis for finding bugs  
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+  \frametitle{References}
+  \bibliographystyle{alpha}
+  \bibliography{references.bib}
+\end{frame}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+
+\end{document}
