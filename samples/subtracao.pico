@@ -1,0 +1,9 @@
+begin
+	declaration x : natural,
+				y : natural,
+				output: natural;
+	x = 20;
+	y = 10;
+	
+	output = x - y;
+end.
