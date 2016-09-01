@@ -8,24 +8,35 @@ import Test.HUnit
 st :: SymbolTable
 st = [("x", TNatural), ("y", TNatural), ("output", TNatural)]
 
-testSuite = 
-  TestList [ TestLabel "sumTest" sumTest, 
-             TestLabel "ifThenTest" ifThenTest ]
+testSuite = TestList [ 
+  TestLabel "sumTest" sumTest, 
+  TestLabel "subTest" subTest,
+  TestLabel "ifThenTest" ifThenTest ]
 
--- | Simple sum statement test
-sumProgram :: Program
-sumProgram = Program st [x10, y50, res]
-
+-- | Variables for sum and sub tests
 x10 :: Statement
 x10 = Assignment "x" (ExpValue (NATValue 10))
 
 y50 :: Statement
 y50 = Assignment "y" (ExpValue (NATValue 50))
 
-res :: Statement
-res = Assignment "output" (Add (Var "x") (Var "y"))
+-- | Simple sum statement test
+sumProgram :: Program
+sumProgram = Program st [x10, y50, res1]
+
+res1 :: Statement
+res1 = Assignment "output" (Add (Var "x") (Var "y"))
 
 sumTest = TestCase (assertEqual "for x = 10; y = 50; output = x + y;" (NATValue 60) (runProgram sumProgram)) 
+
+-- | Simple subtraction statement test
+subProgram :: Program
+subProgram = Program st [x10, y50, res2] 
+
+res2 :: Statement
+res2 = Assignment "output" (Sub (Var "y") (Var "x"))
+
+subTest = TestCase (assertEqual "for x = 10; y = 50; output = y - x;" (NATValue 40) (runProgram subProgram))
 
 -- | Simple ifThen statement test
 ifThenProgram :: Program
