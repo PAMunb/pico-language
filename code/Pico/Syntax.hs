@@ -12,6 +12,11 @@ Portability :  portable
 
 module Pico.Syntax where
 
+-- | A PICO program is a list of declarations (a symbol table)
+-- and a block of statements. 
+data Program = Program SymbolTable Block 
+ deriving(Show)
+
 type Id = String 
 
 -- | The supported data types of a PICO program
@@ -28,12 +33,9 @@ type SymbolTable = [Declaration]
 -- PICO program, and models the memory allocated to
 -- the program, in terms of variables and their assigned
 -- values (expressions). 
-type Environment = [(Id, Expression)]
 
--- | A PICO program is a list of declarations (a symbol table)
--- and a block of statements. 
-data Program = Program SymbolTable Block 
- deriving(Show)
+type Environment = [(Id, Value)]
+
 
 -- | PICO supports five types of statements:
 -- * assignment
