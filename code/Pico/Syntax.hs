@@ -60,6 +60,9 @@ data Expression = ExpValue Value
                 | Var Id
                 | Add Expression Expression
                 | Sub Expression Expression
+                | Mult Expression Expression
+                | Pow Expression Expression
+                | Div Expression Expression
                 | Concat Expression Expression  
   deriving(Show)
 

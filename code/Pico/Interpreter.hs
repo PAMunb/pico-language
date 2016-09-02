@@ -87,7 +87,13 @@ eval (Add lhs rhs) env = evalBinNatExp lhs rhs (+) env
 
 eval (Sub lhs rhs) env = evalBinNatExp lhs rhs (-) env 
 
-eval (Concat lhs rhs) = undefined
+eval (Mult lhs rhs) env = evalBinNatExp lhs rhs (*) env
+
+eval (Pow lhs rhs) env = evalBinNatExp lhs rhs (^) env
+
+eval (Div lhs rhs) env = evalBinNatExp lhs rhs (quot) env
+
+eval (Concat lhs rhs) env = undefined
 
 -- evalBinExp :: Expression -> Expression -> Environment -> Value
 evalBinNatExp lhs rhs op env =
