@@ -13,7 +13,9 @@ testSuite = TestList [
   TestLabel "subTest" subTest,
   TestLabel "ifThenTest" ifThenTest,
   TestLabel "ifThenElseTest1" ifThenElseTest1,
-  TestLabel "ifThenElseTest2" ifThenElseTest2 ]
+  TestLabel "ifThenElseTest2" ifThenElseTest2,
+  TestLabel "whileTest1" whileTest1,
+  TestLabel "whileTest2" whileTest2 ]
 
 -- | Variables for sum and sub tests
 x10 :: Statement
@@ -81,6 +83,41 @@ ifThenElseTest1 = TestCase (assertEqual "if(1){output = 1} else {output = 2}"
 -- Test for Else clause
 ifThenElseTest2 = TestCase (assertEqual "if(0){output = 1} else {output = 2}" 
                            (NATValue 2) (runProgram ifThenElseProgram2)) 
+
+-- | Simple while statement test
+whileProgram1 :: Program
+whileProgram1 = Program st [out1, whileBlock1]
+
+out1 :: Statement
+out1 = Assignment "output" (ExpValue (NATValue 1))
+
+whileBlock1 :: Statement
+whileBlock1 = While falseExp whileStatement
+
+-- Test while block with false expression
+whileTest1 = TestCase (assertEqual "output = 1; while(false){...}"
+                      (NATValue 1) (runProgram whileProgram1))
+
+whileProgram2 :: Program
+whileProgram2 = Program st [out1, x1, whileBlock2]
+
+x1 :: Statement
+x1 = Assignment "x" (ExpValue (NATValue 1))
+
+whileBlock2 :: Statement
+whileBlock2 = While whileExp whileStatement
+
+whileExp :: Expression
+whileExp = Var "x"
+
+whileStatement :: Statement
+whileStatement = 
+  Block [Assignment "output" (Add (Var "output") (Var "x")),
+         Assignment "x" (Sub (Var "x") (Var "x"))]
+
+-- Test while block with var expression
+whileTest2 = TestCase (assertEqual "output = 1; x = 1; while(x){output+1; x-1}"
+                      (NATValue 2) (runProgram whileProgram2))
 
 -- | Utility functions for tests
 
