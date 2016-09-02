@@ -11,7 +11,9 @@ st = [("x", TNatural), ("y", TNatural), ("output", TNatural)]
 testSuite = TestList [ 
   TestLabel "sumTest" sumTest, 
   TestLabel "subTest" subTest,
-  TestLabel "ifThenTest" ifThenTest ]
+  TestLabel "ifThenTest" ifThenTest,
+  TestLabel "ifThenElseTest1" ifThenElseTest1,
+  TestLabel "ifThenElseTest2" ifThenElseTest2 ]
 
 -- | Variables for sum and sub tests
 x10 :: Statement
@@ -55,3 +57,33 @@ ifBody :: Statement
 ifBody = Assignment "output" (ExpValue (NATValue 20))
 
 ifThenTest = TestCase (assertEqual "for output = 10; if(1){ output = 20 }" (NATValue 20) (runProgram ifThenProgram)) 
+
+-- | Simple ifThenElse statement test
+ifThenElseProgram1 :: Program
+ifThenElseProgram1 = Program st [ifElseBlock1]
+
+ifElseBlock1 :: Statement
+ifElseBlock1 = IfThenElse trueExp statement1 statement2
+
+trueExp :: Expression
+trueExp = (ExpValue (NATValue 1))
+
+ifThenElseProgram2 :: Program
+ifThenElseProgram2 = Program st [ifElseBlock2]
+
+ifElseBlock2 :: Statement
+ifElseBlock2 = IfThenElse falseExp statement1 statement2
+
+falseExp :: Expression
+falseExp = (ExpValue (NATValue 0))
+
+statement1 :: Statement
+statement1 = Assignment "output" (ExpValue (NATValue 1))
+
+statement2 :: Statement
+statement2 = Assignment "output" (ExpValue (NATValue 2))
+
+ifThenElseTest1 = TestCase (assertEqual "if(1){output = 1} else {output = 2}" 
+                             (NATValue 1) (runProgram ifThenElseProgram1)) 
+ifThenElseTest2 = TestCase (assertEqual "if(0){output = 1} else {output = 2}" 
+                             (NATValue 2) (runProgram ifThenElseProgram2)) 
