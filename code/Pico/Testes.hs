@@ -11,6 +11,9 @@ st = [("x", TNatural), ("y", TNatural), ("output", TNatural)]
 testSuite = TestList [ 
   TestLabel "sumTest" sumTest, 
   TestLabel "subTest" subTest,
+  TestLabel "multTest" multTest,
+  TestLabel "divTest" divTest,
+  TestLabel "powTest" powTest,
   TestLabel "ifThenTest" ifThenTest,
   TestLabel "ifThenElseTest1" ifThenElseTest1,
   TestLabel "ifThenElseTest2" ifThenElseTest2,
@@ -18,6 +21,10 @@ testSuite = TestList [
   TestLabel "whileTest2" whileTest2 ]
 
 -- | Variables for sum and sub tests
+
+y03 :: Statement
+y03 = Assignment "y" (ExpValue (NATValue 3))
+
 x10 :: Statement
 x10 = Assignment "x" (ExpValue (NATValue 10))
 
@@ -41,6 +48,33 @@ resultSub :: Statement
 resultSub = Assignment "output" (Sub (Var "y") (Var "x"))
 
 subTest = TestCase (assertEqual "for x = 10; y = 50; output = y - x;" (NATValue 40) (runProgram subProgram))
+
+-- | Simple multiplication statement test
+multProgram :: Program
+multProgram = Program st [x10, y50, resultMult] 
+
+resultMult :: Statement
+resultMult = Assignment "output" (Mult (Var "y") (Var "x"))
+
+multTest = TestCase (assertEqual "for x = 10; y = 50; output = y * x;" (NATValue 500) (runProgram multProgram))
+
+-- | Simple division statement test
+divProgram :: Program
+divProgram = Program st [x10, y03, resultDiv]
+
+resultDiv :: Statement
+resultDiv = Assignment "output" (Div (Var "x") (Var "y"))
+
+divTest = TestCase (assertEqual "for x = 10; y = 3; output = x / y;" (NATValue 3) (runProgram divProgram))
+
+-- | Simple exponentiation statement test
+powProgram :: Program
+powProgram = Program st [x10, y03, resultPow]
+
+resultPow :: Statement
+resultPow = Assignment "output" (Pow (Var "x") (Var "y"))
+
+powTest = TestCase (assertEqual "for x = 10; y = 3; output = x ^ y;" (NATValue 1000) (runProgram powProgram))
 
 -- | Simple ifThen statement test
 ifThenProgram :: Program

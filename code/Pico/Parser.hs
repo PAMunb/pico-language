@@ -129,6 +129,9 @@ binExp =
  where
    cons '+' = Add
    cons '-' = Sub
+   cons '*' = Mult
+   cons '^' = Pow
+   cons '/' = Div
    cons '|' = Concat
     
 -- | A parser for PICO natural keyword.       
