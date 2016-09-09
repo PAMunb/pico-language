@@ -6,11 +6,12 @@ import Pico.Syntax
 runProgram :: Program -> Value
 runProgram (Program st block) =
   let
-    env = execute (Block block) [(v, (ExpValue None)) | (v, _) <- st]
-    exp = lookup "output" env  
+    env0 = [(v, None) | (v, t) <- st]  
+    env1 = execute (Block block) env0  
+    exp = lookup "output" env1  
   in case exp of
       (Nothing) -> error "expecting the declaration of the output variable"
-      (Just e)  -> eval e env
+      (Just out)  -> out
      
 -- | The interpreter based operational semantics of PICO.
 -- It takes a statement and the current environment,
@@ -28,7 +29,8 @@ execute :: Statement    -- ^ a statement that might change the environment
 
 
 -- executes an assignment statement. 
-execute (Assignment var expression) env = assign var expression env
+execute (Assignment var expression) env = assign var value env
+  where value = eval expression env
 
 -- executes an IfThenElse statement. 
 execute (IfThenElse exp stmtThen stmtElse) env = 
@@ -61,12 +63,12 @@ execute (Block (s:ss)) env =
   in execute (Block ss) env'
       
 
-assign :: Id -> Expression -> Environment -> Environment
-assign var exp env = 
+assign :: Id -> Value -> Environment -> Environment
+assign var value env = 
  let temp = lookup var env
  in case temp of
      Nothing  -> error "Variable not declared"
-     (Just _) -> (var, exp) : [(v,e) | (v,e) <- env, v /= var]
+     (Just _) -> (var, value) : [(v,e) | (v,e) <- env, v /= var]
 
 -- | The eval function. It evaluates an
 --   expression, returning the respective
@@ -78,21 +80,26 @@ eval (ExpValue value) _ = value
 eval (Var v) env =
   let exp = lookup v env
   in case exp of
-     (Just e) -> eval e env
+     (Just v) -> v
      (Nothing)-> error $ "Variable " ++ (show v) ++ " not declared"
 
-eval (Add lhs rhs) env =
+eval (Add lhs rhs) env = evalBinNatExp lhs rhs (+) env 
+
+eval (Sub lhs rhs) env = evalBinNatExp lhs rhs (-) env 
+
+eval (Mult lhs rhs) env = evalBinNatExp lhs rhs (*) env
+
+eval (Pow lhs rhs) env = evalBinNatExp lhs rhs (^) env
+
+eval (Div lhs rhs) env = evalBinNatExp lhs rhs (quot) env
+
+eval (Concat lhs rhs) env = undefined
+
+-- evalBinExp :: Expression -> Expression -> Environment -> Value
+evalBinNatExp lhs rhs op env =
   let (v1, v2) = (eval lhs env, eval rhs env)
   in case (v1, v2) of
-     (NATValue n1, NATValue n2) -> NATValue (n1 + n2)
+     (NATValue n1, NATValue n2) -> NATValue (n1 `op` n2)
      otherwise -> error "Expecting two natural values" 
-
--- lookup :: Id -> Environment -> Maybe Expression
--- lookup var env =
---   let res = [(v, e) | (v, e) <- env, v == var]
---   in case res of
---      [(v,e)]   -> Just e
---      otherwise -> Nothing
-
 
   
