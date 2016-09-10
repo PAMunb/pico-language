@@ -14,8 +14,8 @@ parsePicoProgram =
   token "begin"       >>= \_     ->
   token "declaration" >>= \_     -> 
   declarations        >>= \decls ->
---  statements          >>= \stmts ->
---  token "end."        >>= \_     -> 
+  statements          >>= \stmts ->
+  token "end."        >>= \_     -> 
   return (Program decls [])
 
 -- | A parser for a list of variable declarations in PICO. 
@@ -26,7 +26,7 @@ statements   = separator ';' statement
 
 -- | A parser for a PICO statement. 
 statement :: Parser Statement
-statement = assignment <|> ifThenElse <|> ifThen
+statement = assignment <|> ifThenElse <|> ifThen <|> while
 
 -- | A parser for an assignment statement. 
 assignment :: Parser Statement
@@ -37,44 +37,39 @@ assignment = identifier >>= \var ->
 -- | A parser for an IfThenElse statement
 ifThenElse :: Parser Statement
 ifThenElse =
-  blanks >>= \_        ->
-  string "if" >>= \_   ->
-  blanks >>= \_        ->
-  string "(" >>= \_    -> 
+  token "if" >>= \_   ->
+  token "(" >>= \_    -> 
   expression >>= \cond ->
-  string ")" >>= \_    -> 
-  blanks >>= \_        -> 
-  string "then" >>= \_ ->
+  token ")" >>= \_    -> 
+  token "then" >>= \_ ->
   statements >>= \thenStatements ->
-  blanks >>= \_        ->
-  string "else" >>= \_ ->
+  token "else" >>= \_ ->
   statements >>= \elseStatements ->
+  token "endif" >>= \_ -> 
   return $ IfThenElse cond (Block thenStatements) (Block elseStatements)
 
 -- | A parser for an IfThen statement
 ifThen :: Parser Statement
 ifThen = 
-  blanks >>= \_        ->
-  string "if" >>= \_   ->
-  blanks >>= \_        ->
-  string "(" >>= \_    -> 
+  token "if" >>= \_   ->
+  token "(" >>= \_    -> 
   expression >>= \cond ->
-  string ")" >>= \_    -> 
-  blanks >>= \_        -> 
-  string "then" >>= \_ ->
+  token ")" >>= \_    -> 
+  token "then" >>= \_ ->
   statements >>= \thenStatements ->
+  token "endif" >>= \_ -> 
   return $ IfThen cond (Block thenStatements)
 
 while :: Parser Statement
 while =
-  blanks >>= \_          ->
-  string "while" >>= \_  ->
-  blanks >>= \_          ->
-  string "(" >>= \_      -> 
+  token "while" >>= \_  ->
+  token "(" >>= \_      -> 
   expression >>= \cond   ->
-  string ")" >>= \_      -> 
-  blanks >>= \_          ->
+  token ")" >>= \_      -> 
+  token "do" >>= \_     ->
+  blanks >>= \_          -> 
   statements >>= \stmts  ->
+  token "od" >>= \_      -> 
   return $ While cond (Block stmts)
 
 -- | A parser for a single declaration. 
@@ -97,9 +92,12 @@ identifier = (letter >>= \c -> many (letter <|> digit) >>= \cs -> return (c:cs))
 -- parsers for left-recursive grammars, I have decided
 -- to change the concrete syntax of binary expressions, which
 -- should be written using the prefix notation. 
-expression :: Parser Expression
-expression =  value <|> var <|> binExp 
 
+-- expression :: Parser Expression
+-- expression =  value <|> var <|> binExp 
+
+-- expression :: Parser Expression
+-- expression = binExp
 
 value :: Parser Expression
 value =  (natural >>= \v -> return $ ExpValue (NATValue v))
@@ -111,28 +109,55 @@ var = blanks >>= \_       ->
       blanks >>= \_       ->
       return (Var var)
 
-binExp :: Parser Expression
-binExp =
-      blanks >>=       \_         ->
-      char   >>=       \opr       ->
-      blanks >>=       \_         ->
-      sat (== '(') >>= \_         ->
-      blanks >>=       \_         ->
-      expression >>=   \exp1      ->
-      blanks >>=       \_         ->
-      sat (== ',') >>= \_         ->
-      blanks >>=       \_         -> 
-      expression >>=   \exp2      ->
-      blanks >>=       \_         ->
-      sat (== ')') >>= \_         -> 
-      return ((cons opr) exp1 exp2)
+expression :: Parser Expression
+expression =
+  term >>= \ter   ->
+  ((blanks >>= \_ ->
+   (symbol '+' <|> symbol '-') >>= \opr ->
+   blanks >>= \_ ->
+   expression >>= \exp ->
+   return $ (consExp opr) ter exp) <|> return ter) 
  where
-   cons '+' = Add
-   cons '-' = Sub
-   cons '*' = Mult
-   cons '^' = Pow
-   cons '/' = Div
-   cons '|' = Concat
+   consExp '+' = Add
+   consExp '-' = Sub
+
+term :: Parser Expression
+term =
+  factor >>= \fac -> 
+  ((blanks >>= \_ ->
+   (symbol '*' <|> symbol '*') >>= \opr ->
+    blanks >>= \_ -> 
+    term >>= \ter ->
+    return $ (consExp opr) fac ter) <|> return fac)
+ where
+   consExp '*' = Mult
+   consExp '/' = Div
+
+factor :: Parser Expression
+factor = value <|> var <|> (token "(" >>= \_ -> expression >>= \exp -> token ")" >>= \_ -> return exp)
+
+-- binExp :: Parser Expression
+-- binExp =
+--       blanks >>=       \_         ->
+--       char   >>=       \opr       ->
+--       blanks >>=       \_         ->
+--       sat (== '(') >>= \_         ->
+--       blanks >>=       \_         ->
+--       expression >>=   \exp1      ->
+--       blanks >>=       \_         ->
+--       sat (== ',') >>= \_         ->
+--       blanks >>=       \_         -> 
+--       expression >>=   \exp2      ->
+--       blanks >>=       \_         ->
+--       sat (== ')') >>= \_         -> 
+--       return ((cons opr) exp1 exp2)
+--  where
+--    cons '+' = Add
+--    cons '-' = Sub
+--    cons '*' = Mult
+--    cons '^' = Pow
+--    cons '/' = Div
+--    cons '|' = Concat
     
 -- | A parser for PICO natural keyword.       
 nat :: Parser Type 

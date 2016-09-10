@@ -58,6 +58,9 @@ sat p = \s -> case s of
                (c:cs) -> if p c then char s else []
                otherwise -> []
 
+symbol :: Char -> Parser Char
+symbol c = sat (== c)
+
 -- | Parser for a letter.
 -- This parser only succeeds if the input string
 -- starts with a letter, such as "haskell 193";

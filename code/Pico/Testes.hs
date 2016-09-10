@@ -1,7 +1,10 @@
 module Pico.Testes where
 
+import System.IO
+
 import Pico.Syntax
 import Pico.Interpreter
+import Pico.Parser
 
 import Test.HUnit
 
@@ -162,3 +165,22 @@ trueExp = (ExpValue (NATValue 1))
 -- | False expression
 falseExp :: Expression
 falseExp = (ExpValue (NATValue 0))
+
+
+parseTest = TestCase (do
+                         contents <- readFile "../samples/soma.pico"
+                         let p = parsePicoProgram contents
+                         case p of
+                           [("", Program _ _)] -> assertBool "Expecting parsing ok " True
+                           otherwise -> assertFailure "File: ../samples/somaPico should be ok."
+  )
+
+  
+
+parseTest2 = TestCase (do
+                         contents <- readFile "../samples/times.pico"
+                         let p = parsePicoProgram contents
+                         case p of
+                           [("", Program _ _)] -> assertBool "Expecting parsing ok " True
+                           otherwise -> assertFailure "File: ../samples/somaPico should be ok."
+  )

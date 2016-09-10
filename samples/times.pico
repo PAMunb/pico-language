@@ -1,0 +1,14 @@
+begin
+  declaration x : natural,
+              y : natural,
+	      output : natural;
+
+  x = 10;
+  y = 20;
+  output = x;
+  
+  while (y-1) do
+    output = output + x;
+    y = y - 1
+  od
+end.
