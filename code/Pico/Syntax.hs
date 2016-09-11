@@ -21,7 +21,7 @@ type Id = String
 
 -- | The supported data types of a PICO program
 data Type = TNatural | TString 
- deriving(Show)
+ deriving(Show, Eq)
 
 -- | A declaration is an association between an Id and a Type         
 type Declaration = (Id, Type)
