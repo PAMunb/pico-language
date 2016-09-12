@@ -114,7 +114,7 @@ var = blanks >>= \_       ->
 binExp :: Parser Expression
 binExp =
       blanks >>=       \_         ->
-      char   >>=       \opr       ->
+      char >>=         \opr       ->
       blanks >>=       \_         ->
       sat (== '(') >>= \_         ->
       blanks >>=       \_         ->
@@ -132,8 +132,10 @@ binExp =
    cons '*' = Mult
    cons '^' = Pow
    cons '/' = Div
+   cons '<' = Min
+   cons '>' = Max
    cons '|' = Concat
-    
+
 -- | A parser for PICO natural keyword.       
 nat :: Parser Type 
 nat = string "natural" >>= \_ -> return TNatural 
