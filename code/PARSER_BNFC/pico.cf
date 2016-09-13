@@ -1,5 +1,5 @@
 PICO_PROGRAM. PROGRAM ::= "begin" DECLS SERIES "end.";
-DECLARATION0. DECLS ::= "declare" ID_TYPE_LIST ";" ;
+DECLARATION0. DECLS ::= "declare" ID_TYPE_LIST SKIP ;
 
 ID_LIST0. ID_TYPE_LIST ::= ID ":" TYPE ;
 ID_LIST1. ID_TYPE_LIST ::= ID ":" TYPE "," ID_TYPE_LIST ;
@@ -9,6 +9,7 @@ TYPE_STRING. TYPE ::= "string";
 
 SERIES0. SERIES ::= EMPTY;
 SERIES1. SERIES ::= STAT ";" SERIES;
+SERIES2. SERIES ::= SKIP;
 
 STAT0. STAT ::= ASSIGN;
 STAT1. STAT ::= IF;
@@ -44,5 +45,8 @@ ID_CHAR1. ID_CHAR ::= LETTER;
 LETTERS. LETTER ::= Char ;
 
 EMPTY0. EMPTY ::= [Ident] ;
-separator Ident ""
+separator Ident "";
 
+SKIP0. SKIP ::= ";";
+SKIP1. SKIP ::= EMPTY;
+SKIP2. SKIP ::= ";" SKIP;
