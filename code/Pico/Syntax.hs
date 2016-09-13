@@ -22,8 +22,8 @@ data Program = Program SymbolTable Block
 type Id = String 
 
 -- | The supported data types of a PICO program
-data Type = TNatural | TString 
- deriving(Show)
+data Type = TNatural | TString | TNone | TError 
+ deriving(Show, Eq)
 
 -- | A declaration is an association between an Id and a Type         
 type Declaration = (Id, Type)
@@ -50,7 +50,7 @@ data Statement = Assignment Id Expression
                | IfThen Expression Statement
                | While Expression Statement
                | Block [Statement]  
-  deriving(Show)
+  deriving(Show, Eq)
 
 -- | PICO supports five types of expressions:
 -- * a value
@@ -73,7 +73,7 @@ data Expression = ExpValue Value
                 | GT Expression Expression
                 | LT Expression Expression
                 | Concat Expression Expression  
-  deriving(Show)
+  deriving(Show, Eq)
 
 -- | PICO supports two types: string values and natural values.
 -- However, this implementation also provides supports for
@@ -85,5 +85,5 @@ data Value = STRValue String
            | Error   
   deriving(Eq, Show)
 
-          
+
 type Block = [Statement] 
