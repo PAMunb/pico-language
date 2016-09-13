@@ -93,13 +93,36 @@ eval (Pow lhs rhs) env = evalBinNatExp lhs rhs (^) env
 
 eval (Div lhs rhs) env = evalBinNatExp lhs rhs (quot) env
 
-eval (Concat lhs rhs) env = undefined
+eval (Max lhs rhs) env = evalBinMaxExp lhs rhs env
+
+eval (Min lhs rhs) env = evalBinMinExp lhs rhs env
+ 
+eval (Concat lhs rhs) env = evalBinConcatExp lhs rhs env
 
 -- evalBinExp :: Expression -> Expression -> Environment -> Value
 evalBinNatExp lhs rhs op env =
   let (v1, v2) = (eval lhs env, eval rhs env)
   in case (v1, v2) of
      (NATValue n1, NATValue n2) -> NATValue (n1 `op` n2)
-     otherwise -> error "Expecting two natural values" 
+     otherwise -> error "Expecting two natural values"
 
-  
+-- evalBinMaxExp :: Expression -> Expression -> Environment -> Value
+evalBinMaxExp lhs rhs env = 
+  let (v1, v2) = (eval lhs env, eval rhs env)
+  in case (v1, v2) of
+    (NATValue n1, NATValue n2) -> NATValue (max n1 n2)
+    otherwise -> error "Expecting two natural values"
+
+-- evalBinMinExp :: Expression -> Expression -> Environment -> Value
+evalBinMinExp lhs rhs env = 
+  let (v1, v2) = (eval lhs env, eval rhs env)
+  in case (v1, v2) of
+    (NATValue n1, NATValue n2) -> NATValue (min n1 n2)
+    otherwise -> error "Expecting two natural values"
+
+-- evalBinConcatExp:: Expression -> Expression -> Environment -> Value
+evalBinConcatExp lhs rhs env = 
+  let (v1, v2) = (eval lhs env, eval rhs env)
+  in case (v1, v2) of
+    (STRValue s1, STRValue s2) -> STRValue (s1 ++ s2)
+    otherwise -> error "Expecting two string values"
