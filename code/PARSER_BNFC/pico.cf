@@ -1,0 +1,48 @@
+PICO_PROGRAM. PROGRAM ::= "begin" DECLS SERIES "end.";
+DECLARATION0. DECLS ::= "declare" ID_TYPE_LIST ";" ;
+
+ID_LIST0. ID_TYPE_LIST ::= ID ":" TYPE ;
+ID_LIST1. ID_TYPE_LIST ::= ID ":" TYPE "," ID_TYPE_LIST ;
+
+TYPE_INTEGER. TYPE ::= "integer";
+TYPE_STRING. TYPE ::= "string";
+
+SERIES0. SERIES ::= EMPTY;
+SERIES1. SERIES ::= STAT ";" SERIES;
+
+STAT0. STAT ::= ASSIGN;
+STAT1. STAT ::= IF;
+STAT2. STAT ::= WHILE;
+
+ASSIGN0. ASSIGN ::= ID ":=" EXP;
+
+IF0. IF ::= "if" EXP "then" SERIES "fi" ;
+IF1. IF ::= "if" EXP "then" SERIES "else" SERIES "fi" ;
+
+WHILE0. WHILE ::= "while" EXP "do" SERIES "od" ;
+
+EXP0. EXP ::= ID ;
+EXP1. EXP ::= Integer ;
+EXP2. EXP ::= String ;
+EXP3. EXP ::= PLUS ;
+EXP4. EXP ::= CONC ;
+EXP5. EXP ::= "(" EXP ")" ;
+
+PLUS0. PLUS ::= EXP "+" EXP;
+CONC0. CONC ::= EXP "||" EXP;
+
+
+
+ID0. ID ::= LETTER ID_CHARS;
+ID1. ID ::= ID_CHARS;
+
+ID_CHARS1. ID_CHARS ::= ID_CHAR ID_CHARS;
+ID_CHARS2. ID_CHARS ::= EMPTY;
+
+ID_CHAR1. ID_CHAR ::= LETTER;
+
+LETTERS. LETTER ::= Char ;
+
+EMPTY0. EMPTY ::= [Ident] ;
+separator Ident ""
+
