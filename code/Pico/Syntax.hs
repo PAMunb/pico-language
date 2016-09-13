@@ -15,7 +15,7 @@ module Pico.Syntax where
 -- | A PICO program is a list of declarations (a symbol table)
 -- and a block of statements. 
 data Program = Program SymbolTable Block 
- deriving(Show)
+ deriving(Show, Eq)
 
 type Id = String 
 
