@@ -12,6 +12,8 @@ Portability :  portable
 
 module Pico.Syntax where
 
+import Prelude hiding (GT, LT)
+
 -- | A PICO program is a list of declarations (a symbol table)
 -- and a block of statements. 
 data Program = Program SymbolTable Block 
@@ -68,8 +70,8 @@ data Expression = ExpValue Value
                 | Mult Expression Expression
                 | Pow Expression Expression
                 | Div Expression Expression
-                | Max Expression Expression
-                | Min Expression Expression
+                | GT Expression Expression
+                | LT Expression Expression
                 | Concat Expression Expression  
   deriving(Show)
 

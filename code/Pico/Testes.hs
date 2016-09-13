@@ -1,5 +1,6 @@
 module Pico.Testes where
 
+import Prelude hiding (GT, LT)
 import System.IO
 
 import Pico.Syntax
@@ -25,7 +26,10 @@ testSuite = TestList [
   TestLabel "ifThenElseTest1" ifThenElseTest1,
   TestLabel "ifThenElseTest2" ifThenElseTest2,
   TestLabel "whileTest1" whileTest1,
-  TestLabel "whileTest2" whileTest2 ]
+  TestLabel "whileTest2" whileTest2,
+  TestLabel "parseTest1" parseTest1,
+  TestLabel "parseTest2" parseTest2,
+  TestLabel "parseTest3" parseTest3]
 
 -- | Variables for sum and sub tests
 
@@ -94,7 +98,7 @@ maxProgram :: Program
 maxProgram = Program st [x10, y03, resultMax]
 
 resultMax :: Statement
-resultMax = Assignment "output" (Max (Var "x") (Var "y"))
+resultMax = Assignment "output" (GT (Var "x") (Var "y"))
 
 maxTest = TestCase (assertEqual "for x = 10; y = 3; output = >(x, y);" (NATValue 10) (runProgram maxProgram))
 
@@ -103,7 +107,7 @@ minProgram :: Program
 minProgram = Program st [x10, y03, resultMin]
 
 resultMin :: Statement
-resultMin = Assignment "output" (Min (Var "x") (Var "y"))
+resultMin = Assignment "output" (LT (Var "x") (Var "y"))
 
 minTest = TestCase (assertEqual "for x = 10; y = 3; output = <(x, y);" (NATValue 3) (runProgram minProgram))
 
@@ -205,7 +209,7 @@ falseExp :: Expression
 falseExp = (ExpValue (NATValue 0))
 
 
-parseTest = TestCase (do
+parseTest1 = TestCase (do
                          contents <- readFile "../samples/soma.pico"
                          let p = parsePicoProgram contents
                          case p of
@@ -220,5 +224,13 @@ parseTest2 = TestCase (do
                          let p = parsePicoProgram contents
                          case p of
                            [("", Program _ _)] -> assertBool "Expecting parsing ok " True
-                           otherwise -> assertFailure "File: ../samples/somaPico should be ok."
+                           otherwise -> assertFailure "File: ../samples/timesPico should be ok."
+  )
+
+parseTest3 = TestCase (do
+                         contents <- readFile "../samples/gt.pico"
+                         let p = parsePicoProgram contents
+                         case p of
+                           [("", Program _ _)] -> assertBool "Expecting parsing ok " True
+                           otherwise -> assertFailure "File: ../samples/gtPico should be ok."
   )

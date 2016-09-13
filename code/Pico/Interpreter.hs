@@ -1,7 +1,8 @@
 module Pico.Interpreter
  (execute, runProgram) where
 
-import Pico.Syntax
+import Prelude hiding (GT, LT) 
+import Pico.Syntax  
 
 runProgram :: Program -> Value
 runProgram (Program st block) =
@@ -93,9 +94,9 @@ eval (Pow lhs rhs) env = evalBinNatExp lhs rhs (^) env
 
 eval (Div lhs rhs) env = evalBinNatExp lhs rhs (quot) env
 
-eval (Max lhs rhs) env = evalBinMaxExp lhs rhs env
+eval (GT lhs rhs) env = evalBinMaxExp lhs rhs env
 
-eval (Min lhs rhs) env = evalBinMinExp lhs rhs env
+eval (LT lhs rhs) env = evalBinMinExp lhs rhs env
  
 eval (Concat lhs rhs) env = evalBinConcatExp lhs rhs env
 
