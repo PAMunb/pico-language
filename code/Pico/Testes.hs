@@ -1,5 +1,6 @@
 module Pico.Testes where
 
+import Prelude hiding (GT, LT)
 import System.IO
 
 import Pico.Syntax
@@ -14,14 +15,21 @@ st = [("x", TNatural), ("y", TNatural), ("output", TNatural)]
 testSuite = TestList [ 
   TestLabel "sumTest" sumTest, 
   TestLabel "subTest" subTest,
+  TestLabel "subTest" subTest,
   TestLabel "multTest" multTest,
   TestLabel "divTest" divTest,
   TestLabel "powTest" powTest,
+  TestLabel "maxTest" maxTest,
+  TestLabel "minTest" minTest, 
+  TestLabel "concatTest" concatTest, 
   TestLabel "ifThenTest" ifThenTest,
   TestLabel "ifThenElseTest1" ifThenElseTest1,
   TestLabel "ifThenElseTest2" ifThenElseTest2,
   TestLabel "whileTest1" whileTest1,
-  TestLabel "whileTest2" whileTest2 ]
+  TestLabel "whileTest2" whileTest2,
+  TestLabel "parseTest1" parseTest1,
+  TestLabel "parseTest2" parseTest2,
+  TestLabel "parseTest3" parseTest3]
 
 -- | Variables for sum and sub tests
 
@@ -33,6 +41,12 @@ x10 = Assignment "x" (ExpValue (NATValue 10))
 
 y50 :: Statement
 y50 = Assignment "y" (ExpValue (NATValue 50))
+
+string1 :: Statement
+string1 = Assignment "x" (ExpValue (STRValue "static"))
+
+string2 :: Statement
+string2 = Assignment "y" (ExpValue (STRValue "analysis"))
 
 -- | Simple sum statement test
 sumProgram :: Program
@@ -78,6 +92,34 @@ resultPow :: Statement
 resultPow = Assignment "output" (Pow (Var "x") (Var "y"))
 
 powTest = TestCase (assertEqual "for x = 10; y = 3; output = x ^ y;" (NATValue 1000) (runProgram powProgram))
+
+-- | Simple maximum number test
+maxProgram :: Program
+maxProgram = Program st [x10, y03, resultMax]
+
+resultMax :: Statement
+resultMax = Assignment "output" (GT (Var "x") (Var "y"))
+
+maxTest = TestCase (assertEqual "for x = 10; y = 3; output = >(x, y);" (NATValue 10) (runProgram maxProgram))
+
+-- | Simple minimum number test
+minProgram :: Program
+minProgram = Program st [x10, y03, resultMin]
+
+resultMin :: Statement
+resultMin = Assignment "output" (LT (Var "x") (Var "y"))
+
+minTest = TestCase (assertEqual "for x = 10; y = 3; output = <(x, y);" (NATValue 3) (runProgram minProgram))
+
+-- | Simple concat string test
+concatProgram :: Program
+concatProgram = Program st [string1, string2, resultConcat]
+
+resultConcat :: Statement
+resultConcat = Assignment "output" (Concat (Var "x") (Var "y"))
+
+concatTest = TestCase (assertEqual "for x = \"static\"; y = \"analysis\"; output = x | y;" (STRValue "staticanalysis") (runProgram concatProgram))
+
 
 -- | Simple ifThen statement test
 ifThenProgram :: Program
@@ -167,7 +209,7 @@ falseExp :: Expression
 falseExp = (ExpValue (NATValue 0))
 
 
-parseTest = TestCase (do
+parseTest1 = TestCase (do
                          contents <- readFile "../samples/soma.pico"
                          let p = parsePicoProgram contents
                          case p of
@@ -182,5 +224,13 @@ parseTest2 = TestCase (do
                          let p = parsePicoProgram contents
                          case p of
                            [("", Program _ _)] -> assertBool "Expecting parsing ok " True
-                           otherwise -> assertFailure "File: ../samples/somaPico should be ok."
+                           otherwise -> assertFailure "File: ../samples/timesPico should be ok."
+  )
+
+parseTest3 = TestCase (do
+                         contents <- readFile "../samples/gt.pico"
+                         let p = parsePicoProgram contents
+                         case p of
+                           [("", Program _ _)] -> assertBool "Expecting parsing ok " True
+                           otherwise -> assertFailure "File: ../samples/gtPico should be ok."
   )

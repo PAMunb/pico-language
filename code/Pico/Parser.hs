@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Pico.Parser where
 
-import Prelude hiding ((>>=), return, fail)
+import Prelude hiding ((>>=), return, fail, GT, LT)
 import Pico.Syntax 
 import Pico.YAHCL
 
@@ -109,30 +109,47 @@ var = blanks >>= \_       ->
       blanks >>= \_       ->
       return (Var var)
 
+
+
 expression :: Parser Expression
 expression =
+  exp1 >>= \e   ->
+  ((blanks >>= \_ ->
+   (symbol '>' <|> symbol '<') >>= \opr ->
+   blanks >>= \_ ->
+   expression >>= \exp ->
+   return $ (consExp opr) e exp) <|> return e) 
+ where
+   consExp '>' = GT
+   consExp '<' = LT
+
+exp1 :: Parser Expression
+exp1 =
   term >>= \ter   ->
   ((blanks >>= \_ ->
    (symbol '+' <|> symbol '-') >>= \opr ->
    blanks >>= \_ ->
-   expression >>= \exp ->
+   exp1 >>= \exp ->
    return $ (consExp opr) ter exp) <|> return ter) 
  where
    consExp '+' = Add
    consExp '-' = Sub
 
+   
 term :: Parser Expression
 term =
   factor >>= \fac -> 
   ((blanks >>= \_ ->
-   (symbol '*' <|> symbol '*') >>= \opr ->
+   (symbol '*' <|> symbol '/' <|> symbol '^' <|> symbol '|') >>= \opr ->
     blanks >>= \_ -> 
     term >>= \ter ->
     return $ (consExp opr) fac ter) <|> return fac)
  where
    consExp '*' = Mult
    consExp '/' = Div
-
+   consExp '|' = Concat
+   consExp '^' = Pow
+   
 factor :: Parser Expression
 factor = value <|> var <|> (token "(" >>= \_ -> expression >>= \exp -> token ")" >>= \_ -> return exp)
 
@@ -159,6 +176,34 @@ factor = value <|> var <|> (token "(" >>= \_ -> expression >>= \exp -> token ")"
 --    cons '/' = Div
 --    cons '|' = Concat
     
+
+-- binExp :: Parser Expression
+-- binExp =
+--       blanks >>=       \_         ->
+--       char >>=         \opr       ->
+--       blanks >>=       \_         ->
+--       sat (== '(') >>= \_         ->
+--       blanks >>=       \_         ->
+--       expression >>=   \exp1      ->
+--       blanks >>=       \_         ->
+--       sat (== ',') >>= \_         ->
+--       blanks >>=       \_         -> 
+--       expression >>=   \exp2      ->
+--       blanks >>=       \_         ->
+--       sat (== ')') >>= \_         -> 
+--       return ((cons opr) exp1 exp2)
+--  where
+--    cons '+' = Add
+--    cons '-' = Sub
+--    cons '*' = Mult
+--    cons '^' = Pow
+--    cons '/' = Div
+--    cons '<' = Min
+--    cons '>' = Max
+--    cons '|' = Concat
+
+-- >>>>>>> 0f24e6861f8c80b8bdf1c96a9991f89d1ce2ebf9
+
 -- | A parser for PICO natural keyword.       
 nat :: Parser Type 
 nat = string "natural" >>= \_ -> return TNatural 
