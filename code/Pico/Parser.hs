@@ -12,7 +12,7 @@ import Pico.YAHCL
 parsePicoProgram :: Parser Program
 parsePicoProgram =
   token "begin"       >>= \_     ->
-  token "declaration" >>= \_     -> 
+  token "declare" >>= \_     -> 
   declarations        >>= \decls ->
   statements          >>= \stmts ->
   token "end."        >>= \_     -> 
@@ -31,7 +31,7 @@ statement = assignment <|> ifThenElse <|> ifThen <|> while
 -- | A parser for an assignment statement. 
 assignment :: Parser Statement
 assignment = identifier >>= \var ->
-             token "="  >>= \_   -> 
+             token ":="  >>= \_   -> 
              expression >>= \exp -> return (Assignment var exp)
 
 -- | A parser for an IfThenElse statement

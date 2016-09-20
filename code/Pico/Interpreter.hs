@@ -1,23 +1,30 @@
 module Pico.Interpreter
  (execute, runProgram) where
 
-import Prelude hiding (GT, LT) 
-import Pico.Syntax  
+import System.IO
+
+import Pico.AbsPico
+
+-- import Pico.Parser
+
+type Id = String
+
+type Environment = [(Id, Value)]
 
 runProgram :: Program -> Value
 runProgram (Program st block) =
   let
-    env0 = [(v, None) | (v, t) <- st]  
+    env0 = [(v, None) | (Decl (Ident v) t) <- st]  
     env1 = execute (Block block) env0  
     exp = lookup "output" env1  
   in case exp of
-      (Nothing) -> error "expecting the declaration of the output variable"
-      (Just out)  -> out
+    (Just v) -> v
+    _        -> error "foo"
      
 -- | The interpreter based operational semantics of PICO.
 -- It takes a statement and the current environment,
 -- and then returns an updated version of the environment.
-execute :: Statement    -- ^ a statement that might change the environment
+execute :: Stmt    -- ^ a statement that might change the environment
         -> Environment  -- ^ the current environment
         -> Environment  -- ^ the environment updated after executing the statement.
 
@@ -30,32 +37,32 @@ execute :: Statement    -- ^ a statement that might change the environment
 
 
 -- executes an assignment statement. 
-execute (Assignment var expression) env = assign var value env
-  where value = eval expression env
-
+execute (Assignment (Ident var) expression) env = (var, val) : [(v,e) | (v, e) <- env, v /= var]
+  where val = eval expression env
+ 
 -- executes an IfThenElse statement. 
 execute (IfThenElse exp stmtThen stmtElse) env = 
   let condition = eval exp env
   in case condition of
-      (NATValue 0) -> execute stmtElse env
-      (NATValue _) -> execute stmtThen env
-      otherwise   -> error "Invalid expression in IfThenElse statement"
+      (INTValue 0) -> execute stmtElse env
+      (INTValue _) -> execute stmtThen env
+      otherwise   -> error "foo"
 
 -- executes an IfThen statement. 
 execute (IfThen exp stmtThen) env =
   let condition = eval exp env
   in case condition of
-      (NATValue 0) -> env
-      (NATValue _) -> execute stmtThen env 
-      otherwise   -> error "Invalid expression in IfThen statement"
+      (INTValue 0) -> env
+      (INTValue _) -> execute stmtThen env 
+      otherwise   -> error "foo"
 
 -- executes an While statement. 
 execute w@(While exp stmts) env =
   let condition = eval exp env
   in case condition of
-      (NATValue 0) -> env 
-      (NATValue _) -> let env' = execute stmts env in execute w env'
-      otherwise -> error "Invalid expression in While statement" 
+      (INTValue 0) -> env 
+      (INTValue _) -> let env' = execute stmts env in execute w env'
+      otherwise -> error "foo"
 
 -- executes a Block os statements. 
 execute (Block []) env   = env
@@ -63,9 +70,9 @@ execute (Block (s:ss)) env =
   let env' = execute s env
   in execute (Block ss) env'
       
-
-assign :: Id -> Value -> Environment -> Environment
-assign var value env = 
+      
+assign :: Ident -> Value -> Environment -> Environment
+assign (Ident var) value env = 
  let temp = lookup var env
  in case temp of
      Nothing  -> error "Variable not declared"
@@ -76,9 +83,9 @@ assign var value env =
 --   value. 
 eval :: Expression -> Environment -> Value
 
-eval (ExpValue value) _ = value
+eval (EXPValue value) _ = value
 
-eval (Var v) env =
+eval (Var (Ident v)) env =
   let exp = lookup v env
   in case exp of
      (Just v) -> v
@@ -94,9 +101,9 @@ eval (Pow lhs rhs) env = evalBinNatExp lhs rhs (^) env
 
 eval (Div lhs rhs) env = evalBinNatExp lhs rhs (quot) env
 
-eval (GT lhs rhs) env = evalBinMaxExp lhs rhs env
+eval (GTE lhs rhs) env = evalBinMaxExp lhs rhs env
 
-eval (LT lhs rhs) env = evalBinMinExp lhs rhs env
+eval (LTE lhs rhs) env = evalBinMinExp lhs rhs env
  
 eval (Concat lhs rhs) env = evalBinConcatExp lhs rhs env
 
@@ -104,21 +111,21 @@ eval (Concat lhs rhs) env = evalBinConcatExp lhs rhs env
 evalBinNatExp lhs rhs op env =
   let (v1, v2) = (eval lhs env, eval rhs env)
   in case (v1, v2) of
-     (NATValue n1, NATValue n2) -> NATValue (n1 `op` n2)
+     (INTValue n1, INTValue n2) -> INTValue (n1 `op` n2)
      otherwise -> error "Expecting two natural values"
 
 -- evalBinMaxExp :: Expression -> Expression -> Environment -> Value
 evalBinMaxExp lhs rhs env = 
   let (v1, v2) = (eval lhs env, eval rhs env)
   in case (v1, v2) of
-    (NATValue n1, NATValue n2) -> NATValue (max n1 n2)
+    (INTValue n1, INTValue n2) -> INTValue (max n1 n2)
     otherwise -> error "Expecting two natural values"
 
 -- evalBinMinExp :: Expression -> Expression -> Environment -> Value
 evalBinMinExp lhs rhs env = 
   let (v1, v2) = (eval lhs env, eval rhs env)
   in case (v1, v2) of
-    (NATValue n1, NATValue n2) -> NATValue (min n1 n2)
+    (INTValue n1, INTValue n2) -> INTValue (min n1 n2)
     otherwise -> error "Expecting two natural values"
 
 -- evalBinConcatExp:: Expression -> Expression -> Environment -> Value

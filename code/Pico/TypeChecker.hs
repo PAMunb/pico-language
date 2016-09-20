@@ -1,128 +1,104 @@
-module Pico.TypeChecker where
+module Pico.TypeChecker (typeCheck) where
 
-import Pico.Syntax
+import Pico.AbsPico 
+
+type SymbolTable = [Decl]
 
 typeCheck :: Program -> Bool
-typeCheck (Program st (b:bs)) = (checkStatement st b) && (checkStatement st (Block bs))
+typeCheck (Program st stmts) = and $ map (\s -> checkStatement s st) stmts 
 
-checkStatement :: SymbolTable -> Statement -> Bool
-checkStatement st (Assignment id exp) = t1 == t2
-	where 
-		t1 = getTypeId st id
-		t2 = getTypeExp st exp
+checkStatement :: Stmt -> SymbolTable -> Bool
+checkStatement (Assignment var exp) st = t1 == t2
+ where
+   t1 = getSymbolType var  st
+   t2 = getExpType exp st
 
-checkStatement st (IfThenElse exp stm1 stm2) = t1 == TNatural
-	&& checkStatement st stm1
-	&& checkStatement st stm2
-	where
-		t1 = getTypeExp st exp
+checkStatement (IfThenElse exp stm1 stm2) st = t1 == TInteger && checkStatement stm1 st && checkStatement stm2 st
+ where
+   t1 = getExpType exp st
 
-checkStatement st (IfThen exp stm1) = t1 == TNatural
-	&& checkStatement st stm1
-	where
-		t1 = getTypeExp st exp
+checkStatement (IfThen exp stm1) st = t1 == TInteger && checkStatement stm1 st
+ where
+   t1 = getExpType exp st
 
-checkStatement st (While exp stm1) = t1 == TNatural
-	&& checkStatement st stm1
-	where
-		t1 = getTypeExp st exp
+checkStatement (While exp stm1) st = t1 == TInteger && checkStatement stm1 st
+ where
+   t1 = getExpType exp st
 
-checkStatement st (Block stmts) = and $ map (\s -> checkStatement st s) stmts 
+checkStatement (Block stmts) st = and $ map (\s -> checkStatement s st) stmts 
 
-checkExp :: SymbolTable -> Expression -> Bool
-checkExp st (ExpValue exp1) = True 
 
-checkExp st (Var id) = 			   
-	case (texp1) of
-		TNatural -> True
-		TString -> True
-		_ -> False
-	where
-		texp1 = getTypeId st id
+-- | verifies if a expression is well-typed or not
+checkExp :: Expression -> SymbolTable -> Bool
 
-checkExp st (Add exp1 exp2) =
-	case (texp1, texp2) of
-		(TNatural, TNatural) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (EXPValue _) st = True 
 
-checkExp st (Sub exp1 exp2) =
-	case (texp1, texp2) of
-		(TNatural, TNatural) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (Var id) st = True   -- still not sure about this.    
 
-checkExp st (Mult exp1 exp2) =
-	case (texp1, texp2) of
-		(TNatural, TNatural) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (Add exp1 exp2) st = checkNaturalExp exp1 exp2 st
 
-checkExp st (Div exp1 exp2) =
-	case (texp1, texp2) of
-		(TNatural, TNatural) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (Sub exp1 exp2) st = checkNaturalExp exp1 exp2 st
 
-checkExp st (Pow exp1 exp2) =
-	case (texp1, texp2) of
-		(TNatural, TNatural) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (Mult exp1 exp2) st = checkNaturalExp exp1 exp2 st
 
-checkExp st (Concat exp1 exp2) =
-	case (texp1, texp2) of
-		(TString, TString) -> True
-		_ -> False
-	where
-		texp1 = getTypeExp st exp1
-		texp2 = getTypeExp st exp2
+checkExp (Div exp1 exp2) st = checkNaturalExp exp1 exp2 st
 
--- checkEqualTypes :: Type -> Type -> Bool
--- checkEqualTypes type1 type2 
--- 	| type1 == type2 = True
--- 	| otherwise = False
+checkExp (Pow exp1 exp2) st = checkNaturalExp exp1 exp2 st
 
-getTypeId :: [Declaration] -> Id -> Type
-getTypeId st id =
-  let res = [xType |(xId, xType) <- st, xId == id]
+checkExp (Concat exp1 exp2) st =
+ let
+    t1 = getExpType exp1 st
+    t2 = getExpType exp2 st
+ in 
+  case (t1, t2) of
+    (TString, TString) -> True
+    _ -> False
+
+-- just an auxiliarly function to deal with
+-- binary natural expressions.
+checkNaturalExp exp1 exp2 st =
+ let
+  t1 = getExpType exp1 st
+  t2 = getExpType exp2 st
+ in case (t1, t2) of
+  (TInteger, TInteger) -> True
+  _                    -> False
+
+
+-- | The type of a given variable declared in the symbol table. 
+getSymbolType ::  Ident -> SymbolTable -> Type
+getSymbolType var st =
+  let res = [t |(Decl v t) <- st, v == var]
   in case res of
      [t] -> t
-     otherwise -> TError
-    
-getTypeExp :: [Declaration] -> Expression -> Type
--- Doubt, if none value and error what type return
-getTypeExp _ (ExpValue x) = 
-	case x of
-		NATValue x -> TNatural
-		STRValue x -> TString
-                otherwise -> TError
-                
-getTypeExp st (Var v) =  head [vType |(vId, vType) <- st, vId == v]
-getTypeExp st (Add lhs rhs) = getTypeBinExp st lhs rhs
-getTypeExp st (Sub lhs rhs) = getTypeBinExp st lhs rhs
-getTypeExp st (Mult lhs rhs) = getTypeBinExp st lhs rhs
-getTypeExp st (Pow lhs rhs) = getTypeBinExp st lhs rhs
-getTypeExp st (Div lhs rhs) = getTypeBinExp st lhs rhs
-getTypeExp st (Concat lhs rhs) = getTypeBinExp st lhs rhs
+     otherwise -> error "variable  not declared" 
 
-getTypeBinExp :: [Declaration] -> Expression -> Expression -> Type
-getTypeBinExp st lhs rhs =
-	case (v1, v2) of
-		(TNatural, TNatural) -> TNatural
-		(TString, TString) -> TString
-		-- None and Error?
-		otherwise -> error "TYPE ERROR"
-	where
-		v1 = getTypeExp st lhs
-		v2 = getTypeExp st rhs
+-- | The type of an expression.      
+getExpType :: Expression -> SymbolTable -> Type
+
+getExpType (EXPValue x) st = 
+  case x of
+    INTValue x -> TInteger
+    STRValue x -> TString
+    otherwise -> error "foo"
+   
+getExpType (Var var) st =  head [t |(Decl v t) <- st, v == var]
+
+getExpType (Add lhs rhs) st = getTypeBinaryExp lhs rhs st TInteger
+
+getExpType (Sub lhs rhs) st = getTypeBinaryExp lhs rhs st TInteger
+
+getExpType (Mult lhs rhs) st = getTypeBinaryExp lhs rhs st TInteger
+
+getExpType (Pow lhs rhs) st = getTypeBinaryExp lhs rhs st TInteger
+
+getExpType (Div lhs rhs) st = getTypeBinaryExp lhs rhs st TInteger
+
+getExpType (Concat lhs rhs) st = getTypeBinaryExp lhs rhs st TString
+
+getTypeBinaryExp :: Expression -> Expression -> SymbolTable -> Type -> Type
+getTypeBinaryExp lhs rhs st t=
+  let
+    t1 = getExpType lhs st
+    t2 = getExpType rhs st
+   in if t1 == t2 && t1 == t then t else error "foo"
