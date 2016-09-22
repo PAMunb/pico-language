@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Pico.Parser where
 
-import Prelude hiding ((>>=), return, fail, GT, LT)
-import Pico.Syntax 
+import Prelude hiding ((>>=), return, fail, GTE, LTE)
+import Pico.AbsPico 
 import Pico.YAHCL
 
 
@@ -25,42 +25,42 @@ declarations = separator ',' declaration >>= \decls -> token ";" >>= \_ -> retur
 statements   = separator ';' statement
 
 -- | A parser for a PICO statement. 
-statement :: Parser Statement
+statement :: Parser Stmt
 statement = assignment <|> ifThenElse <|> ifThen <|> while
 
 -- | A parser for an assignment statement. 
-assignment :: Parser Statement
+assignment :: Parser Stmt
 assignment = identifier >>= \var ->
              token ":="  >>= \_   -> 
              expression >>= \exp -> return (Assignment var exp)
 
 -- | A parser for an IfThenElse statement
-ifThenElse :: Parser Statement
+ifThenElse :: Parser Stmt
 ifThenElse =
   token "if" >>= \_   ->
   token "(" >>= \_    -> 
   expression >>= \cond ->
   token ")" >>= \_    -> 
   token "then" >>= \_ ->
-  statements >>= \thenStatements ->
+  statements >>= \thenStmts ->
   token "else" >>= \_ ->
-  statements >>= \elseStatements ->
+  statements >>= \elseStmts ->
   token "endif" >>= \_ -> 
-  return $ IfThenElse cond (Block thenStatements) (Block elseStatements)
+  return $ IfThenElse cond (Block thenStmts) (Block elseStmts)
 
 -- | A parser for an IfThen statement
-ifThen :: Parser Statement
+ifThen :: Parser Stmt
 ifThen = 
   token "if" >>= \_   ->
   token "(" >>= \_    -> 
   expression >>= \cond ->
   token ")" >>= \_    -> 
   token "then" >>= \_ ->
-  statements >>= \thenStatements ->
+  statements >>= \thenStmts ->
   token "endif" >>= \_ -> 
-  return $ IfThen cond (Block thenStatements)
+  return $ IfThen cond (Block thenStmts)
 
-while :: Parser Statement
+while :: Parser Stmt
 while =
   token "while" >>= \_  ->
   token "(" >>= \_      -> 
@@ -69,11 +69,11 @@ while =
   token "do" >>= \_     ->
   blanks >>= \_          -> 
   statements >>= \stmts  ->
-  token "od" >>= \_      -> 
+  token "od." >>= \_      -> 
   return $ While cond (Block stmts)
 
 -- | A parser for a single declaration. 
-declaration :: Parser Declaration
+declaration :: Parser Decl
 declaration =
   blanks         >>= \_ -> 
   identifier     >>= \v ->
@@ -82,10 +82,10 @@ declaration =
   blanks         >>= \_ -> 
   (nat <|> str)  >>= \t ->
   blanks         >>= \_ ->
-  return (v, t) 
+  return $ Decl v t
 
-identifier :: Parser Id
-identifier = (letter >>= \c -> many (letter <|> digit) >>= \cs -> return (c:cs))
+identifier :: Parser Ident
+identifier = (letter >>= \c -> many (letter <|> digit) >>= \cs -> return $ Ident (c:cs))
 
 -- | A parser for Expressions in the PICO Language
 -- Due to the challenges of building decendent recursive
@@ -100,8 +100,8 @@ identifier = (letter >>= \c -> many (letter <|> digit) >>= \cs -> return (c:cs))
 -- expression = binExp
 
 value :: Parser Expression
-value =  (natural >>= \v -> return $ ExpValue (NATValue v))
-     <|> (text    >>= \v -> return $ ExpValue (STRValue v))
+value =  (natural >>= \v -> return $ EXPValue (INTValue v))
+     <|> (text    >>= \v -> return $ EXPValue (STRValue v))
 
 var :: Parser Expression
 var = blanks >>= \_       ->
@@ -120,8 +120,8 @@ expression =
    expression >>= \exp ->
    return $ (consExp opr) e exp) <|> return e) 
  where
-   consExp '>' = GT
-   consExp '<' = LT
+   consExp '>' = GTE
+   consExp '<' = LTE
 
 exp1 :: Parser Expression
 exp1 =
@@ -206,7 +206,7 @@ factor = value <|> var <|> (token "(" >>= \_ -> expression >>= \exp -> token ")"
 
 -- | A parser for PICO natural keyword.       
 nat :: Parser Type 
-nat = string "natural" >>= \_ -> return TNatural 
+nat = string "integer" >>= \_ -> return TInteger 
 
 -- | A parser for PICO string keyword. 
 str :: Parser Type

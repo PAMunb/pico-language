@@ -1,4 +1,4 @@
-Program. Program ::= "begin" "declare" [Decl] [Stmt] "end." ;
+Program. Program ::= "begin" "declare" [Decl] ";" [Stmt] "end." ;
 
 Decl. Decl ::= Ident ":" Type ;
 
@@ -6,22 +6,22 @@ TInteger.Type ::= "integer" ;
 TString. Type ::= "string" ;
 
 Assignment. Stmt ::= Ident ":=" Expression ;
-IfThenElse. Stmt ::= "if" Expression "then" Stmt "else" Stmt "fi" ;
-IfThen.     Stmt ::= "if" Expression "then" Stmt  "fi" ;
-While.      Stmt ::= "while" Expression "do" Stmt "od" ;
+IfThenElse. Stmt ::= "if" "(" Expression ")" "then" Stmt "else" Stmt "fi" ;
+IfThen.     Stmt ::= "if" "(" Expression ")" "then" Stmt  "fi" ;
+While.      Stmt ::= "while" "(" Expression ")" "do" Stmt "od" ;
 Block.      Stmt ::= [Stmt] ;
 
 
-Var. Expression      ::= Ident ;
-EXPValue. Expression ::= Value;  
-GTE. Expression1     ::= Expression ">" Expression ;
-LTE. Expression1     ::= Expression "<" Expression ;
-Add. Expression2     ::= Expression "+" Expression ;
-Sub. Expression2     ::= Expression "-" Expression ;  
-Mult. Expression3    ::= Expression "*" Expression ;
-Div. Expression3     ::= Expression "/" Expression ;
-Pow. Expression3     ::= Expression "^" Expression ; 
-Concat. Expression3  ::= Expression "||" Expression ;
+GTE. Expression     ::= Expression ">" Expression1 ;
+LTE. Expression     ::= Expression "<" Expression1 ;
+Add. Expression1     ::= Expression1 "+" Expression2 ;
+Sub. Expression1     ::= Expression1 "-" Expression2 ;  
+Mult. Expression2    ::= Expression2 "*" Expression3 ;
+Div. Expression2    ::= Expression2 "/" Expression3 ;
+Pow. Expression2     ::= Expression2 "^" Expression3 ; 
+Concat. Expression2  ::= Expression2 "||" Expression3 ;
+Var. Expression3      ::= Ident ;
+EXPValue. Expression3 ::= Value;  
 
 
 STRValue. Value ::= String ;
@@ -29,7 +29,7 @@ INTValue. Value ::= Integer ;
 None.     Value ::= "None" ;
 Error.    Value ::= "Error" ; 
 
-separator Ident "" ;
+
 
 separator Decl "," ;
 separator Stmt ";"  ;

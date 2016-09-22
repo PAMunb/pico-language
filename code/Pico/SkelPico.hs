@@ -31,8 +31,6 @@ transStmt x = case x of
   Block stmts -> failure x
 transExpression :: Expression -> Result
 transExpression x = case x of
-  Var ident -> failure x
-  EXPValue value -> failure x
   GTE expression1 expression2 -> failure x
   LTE expression1 expression2 -> failure x
   Add expression1 expression2 -> failure x
@@ -41,6 +39,8 @@ transExpression x = case x of
   Div expression1 expression2 -> failure x
   Pow expression1 expression2 -> failure x
   Concat expression1 expression2 -> failure x
+  Var ident -> failure x
+  EXPValue value -> failure x
 transValue :: Value -> Result
 transValue x = case x of
   STRValue string -> failure x

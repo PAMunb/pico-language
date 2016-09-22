@@ -1,7 +1,7 @@
 begin
-  declare x : natural,
-              y : natural,
-	      output : natural;
+  declare x : integer,
+          y : integer,
+	  output : integer;
 
   x := 10;
   y := 20;

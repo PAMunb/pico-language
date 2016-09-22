@@ -80,13 +80,12 @@ instance Print Double where
 
 instance Print Ident where
   prt _ (Ident i) = doc (showString ( i))
-  prtList _ [] = (concatD [])
-  prtList _ (x:xs) = (concatD [prt 0 x, prt 0 xs])
+
 
 
 instance Print Program where
   prt i e = case e of
-    Program decls stmts -> prPrec i 0 (concatD [doc (showString "begin"), doc (showString "declare"), prt 0 decls, prt 0 stmts, doc (showString "end.")])
+    Program decls stmts -> prPrec i 0 (concatD [doc (showString "begin"), doc (showString "declare"), prt 0 decls, doc (showString ";"), prt 0 stmts, doc (showString "end.")])
 
 instance Print Decl where
   prt i e = case e of
@@ -102,25 +101,25 @@ instance Print Type where
 instance Print Stmt where
   prt i e = case e of
     Assignment id expression -> prPrec i 0 (concatD [prt 0 id, doc (showString ":="), prt 0 expression])
-    IfThenElse expression stmt1 stmt2 -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expression, doc (showString "then"), prt 0 stmt1, doc (showString "else"), prt 0 stmt2, doc (showString "fi")])
-    IfThen expression stmt -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expression, doc (showString "then"), prt 0 stmt, doc (showString "fi")])
-    While expression stmt -> prPrec i 0 (concatD [doc (showString "while"), prt 0 expression, doc (showString "do"), prt 0 stmt, doc (showString "od")])
+    IfThenElse expression stmt1 stmt2 -> prPrec i 0 (concatD [doc (showString "if"), doc (showString "("), prt 0 expression, doc (showString ")"), doc (showString "then"), prt 0 stmt1, doc (showString "else"), prt 0 stmt2, doc (showString "fi")])
+    IfThen expression stmt -> prPrec i 0 (concatD [doc (showString "if"), doc (showString "("), prt 0 expression, doc (showString ")"), doc (showString "then"), prt 0 stmt, doc (showString "fi")])
+    While expression stmt -> prPrec i 0 (concatD [doc (showString "while"), doc (showString "("), prt 0 expression, doc (showString ")"), doc (showString "do"), prt 0 stmt, doc (showString "od")])
     Block stmts -> prPrec i 0 (concatD [prt 0 stmts])
   prtList _ [] = (concatD [])
   prtList _ [x] = (concatD [prt 0 x])
   prtList _ (x:xs) = (concatD [prt 0 x, doc (showString ";"), prt 0 xs])
 instance Print Expression where
   prt i e = case e of
-    Var id -> prPrec i 0 (concatD [prt 0 id])
-    EXPValue value -> prPrec i 0 (concatD [prt 0 value])
-    GTE expression1 expression2 -> prPrec i 1 (concatD [prt 0 expression1, doc (showString ">"), prt 0 expression2])
-    LTE expression1 expression2 -> prPrec i 1 (concatD [prt 0 expression1, doc (showString "<"), prt 0 expression2])
-    Add expression1 expression2 -> prPrec i 2 (concatD [prt 0 expression1, doc (showString "+"), prt 0 expression2])
-    Sub expression1 expression2 -> prPrec i 2 (concatD [prt 0 expression1, doc (showString "-"), prt 0 expression2])
-    Mult expression1 expression2 -> prPrec i 3 (concatD [prt 0 expression1, doc (showString "*"), prt 0 expression2])
-    Div expression1 expression2 -> prPrec i 3 (concatD [prt 0 expression1, doc (showString "/"), prt 0 expression2])
-    Pow expression1 expression2 -> prPrec i 3 (concatD [prt 0 expression1, doc (showString "^"), prt 0 expression2])
-    Concat expression1 expression2 -> prPrec i 3 (concatD [prt 0 expression1, doc (showString "||"), prt 0 expression2])
+    GTE expression1 expression2 -> prPrec i 0 (concatD [prt 0 expression1, doc (showString ">"), prt 1 expression2])
+    LTE expression1 expression2 -> prPrec i 0 (concatD [prt 0 expression1, doc (showString "<"), prt 1 expression2])
+    Add expression1 expression2 -> prPrec i 1 (concatD [prt 1 expression1, doc (showString "+"), prt 2 expression2])
+    Sub expression1 expression2 -> prPrec i 1 (concatD [prt 1 expression1, doc (showString "-"), prt 2 expression2])
+    Mult expression1 expression2 -> prPrec i 2 (concatD [prt 2 expression1, doc (showString "*"), prt 3 expression2])
+    Div expression1 expression2 -> prPrec i 2 (concatD [prt 2 expression1, doc (showString "/"), prt 3 expression2])
+    Pow expression1 expression2 -> prPrec i 2 (concatD [prt 2 expression1, doc (showString "^"), prt 3 expression2])
+    Concat expression1 expression2 -> prPrec i 2 (concatD [prt 2 expression1, doc (showString "||"), prt 3 expression2])
+    Var id -> prPrec i 3 (concatD [prt 0 id])
+    EXPValue value -> prPrec i 3 (concatD [prt 0 value])
 
 instance Print Value where
   prt i e = case e of

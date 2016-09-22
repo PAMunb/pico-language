@@ -26,9 +26,7 @@ data Stmt
   deriving (Eq, Ord, Show, Read)
 
 data Expression
-    = Var Ident
-    | EXPValue Value
-    | GTE Expression Expression
+    = GTE Expression Expression
     | LTE Expression Expression
     | Add Expression Expression
     | Sub Expression Expression
@@ -36,6 +34,8 @@ data Expression
     | Div Expression Expression
     | Pow Expression Expression
     | Concat Expression Expression
+    | Var Ident
+    | EXPValue Value
   deriving (Eq, Ord, Show, Read)
 
 data Value = STRValue String | INTValue Integer | None | Error

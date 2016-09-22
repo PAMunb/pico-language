@@ -17,39 +17,40 @@ import Pico.ErrM
 %name pExpression2 Expression2
 %name pExpression3 Expression3
 %name pValue Value
-%name pListIdent ListIdent
 %name pListDecl ListDecl
 %name pListStmt ListStmt
 -- no lexer declaration
 %monad { Err } { thenM } { returnM }
 %tokentype {Token}
 %token
-  '*' { PT _ (TS _ 1) }
-  '+' { PT _ (TS _ 2) }
-  ',' { PT _ (TS _ 3) }
-  '-' { PT _ (TS _ 4) }
-  '/' { PT _ (TS _ 5) }
-  ':' { PT _ (TS _ 6) }
-  ':=' { PT _ (TS _ 7) }
-  ';' { PT _ (TS _ 8) }
-  '<' { PT _ (TS _ 9) }
-  '>' { PT _ (TS _ 10) }
-  'Error' { PT _ (TS _ 11) }
-  'None' { PT _ (TS _ 12) }
-  '^' { PT _ (TS _ 13) }
-  'begin' { PT _ (TS _ 14) }
-  'declare' { PT _ (TS _ 15) }
-  'do' { PT _ (TS _ 16) }
-  'else' { PT _ (TS _ 17) }
-  'end.' { PT _ (TS _ 18) }
-  'fi' { PT _ (TS _ 19) }
-  'if' { PT _ (TS _ 20) }
-  'integer' { PT _ (TS _ 21) }
-  'od' { PT _ (TS _ 22) }
-  'string' { PT _ (TS _ 23) }
-  'then' { PT _ (TS _ 24) }
-  'while' { PT _ (TS _ 25) }
-  '||' { PT _ (TS _ 26) }
+  '(' { PT _ (TS _ 1) }
+  ')' { PT _ (TS _ 2) }
+  '*' { PT _ (TS _ 3) }
+  '+' { PT _ (TS _ 4) }
+  ',' { PT _ (TS _ 5) }
+  '-' { PT _ (TS _ 6) }
+  '/' { PT _ (TS _ 7) }
+  ':' { PT _ (TS _ 8) }
+  ':=' { PT _ (TS _ 9) }
+  ';' { PT _ (TS _ 10) }
+  '<' { PT _ (TS _ 11) }
+  '>' { PT _ (TS _ 12) }
+  'Error' { PT _ (TS _ 13) }
+  'None' { PT _ (TS _ 14) }
+  '^' { PT _ (TS _ 15) }
+  'begin' { PT _ (TS _ 16) }
+  'declare' { PT _ (TS _ 17) }
+  'do' { PT _ (TS _ 18) }
+  'else' { PT _ (TS _ 19) }
+  'end.' { PT _ (TS _ 20) }
+  'fi' { PT _ (TS _ 21) }
+  'if' { PT _ (TS _ 22) }
+  'integer' { PT _ (TS _ 23) }
+  'od' { PT _ (TS _ 24) }
+  'string' { PT _ (TS _ 25) }
+  'then' { PT _ (TS _ 26) }
+  'while' { PT _ (TS _ 27) }
+  '||' { PT _ (TS _ 28) }
 
 L_ident  { PT _ (TV $$) }
 L_quoted { PT _ (TL $$) }
@@ -63,7 +64,7 @@ String  :: { String }  : L_quoted {  $1 }
 Integer :: { Integer } : L_integ  { (read ( $1)) :: Integer }
 
 Program :: { Program }
-Program : 'begin' 'declare' ListDecl ListStmt 'end.' { Pico.AbsPico.Program $3 $4 }
+Program : 'begin' 'declare' ListDecl ';' ListStmt 'end.' { Pico.AbsPico.Program $3 $5 }
 Decl :: { Decl }
 Decl : Ident ':' Type { Pico.AbsPico.Decl $1 $3 }
 Type :: { Type }
@@ -71,31 +72,29 @@ Type : 'integer' { Pico.AbsPico.TInteger }
      | 'string' { Pico.AbsPico.TString }
 Stmt :: { Stmt }
 Stmt : Ident ':=' Expression { Pico.AbsPico.Assignment $1 $3 }
-     | 'if' Expression 'then' Stmt 'else' Stmt 'fi' { Pico.AbsPico.IfThenElse $2 $4 $6 }
-     | 'if' Expression 'then' Stmt 'fi' { Pico.AbsPico.IfThen $2 $4 }
-     | 'while' Expression 'do' Stmt 'od' { Pico.AbsPico.While $2 $4 }
+     | 'if' '(' Expression ')' 'then' Stmt 'else' Stmt 'fi' { Pico.AbsPico.IfThenElse $3 $6 $8 }
+     | 'if' '(' Expression ')' 'then' Stmt 'fi' { Pico.AbsPico.IfThen $3 $6 }
+     | 'while' '(' Expression ')' 'do' Stmt 'od' { Pico.AbsPico.While $3 $6 }
      | ListStmt { Pico.AbsPico.Block $1 }
 Expression :: { Expression }
-Expression : Ident { Pico.AbsPico.Var $1 }
-           | Value { Pico.AbsPico.EXPValue $1 }
+Expression : Expression '>' Expression1 { Pico.AbsPico.GTE $1 $3 }
+           | Expression '<' Expression1 { Pico.AbsPico.LTE $1 $3 }
 Expression1 :: { Expression }
-Expression1 : Expression '>' Expression { Pico.AbsPico.GTE $1 $3 }
-            | Expression '<' Expression { Pico.AbsPico.LTE $1 $3 }
+Expression1 : Expression1 '+' Expression2 { Pico.AbsPico.Add $1 $3 }
+            | Expression1 '-' Expression2 { Pico.AbsPico.Sub $1 $3 }
 Expression2 :: { Expression }
-Expression2 : Expression '+' Expression { Pico.AbsPico.Add $1 $3 }
-            | Expression '-' Expression { Pico.AbsPico.Sub $1 $3 }
+Expression2 : Expression2 '*' Expression3 { Pico.AbsPico.Mult $1 $3 }
+            | Expression2 '/' Expression3 { Pico.AbsPico.Div $1 $3 }
+            | Expression2 '^' Expression3 { Pico.AbsPico.Pow $1 $3 }
+            | Expression2 '||' Expression3 { Pico.AbsPico.Concat $1 $3 }
 Expression3 :: { Expression }
-Expression3 : Expression '*' Expression { Pico.AbsPico.Mult $1 $3 }
-            | Expression '/' Expression { Pico.AbsPico.Div $1 $3 }
-            | Expression '^' Expression { Pico.AbsPico.Pow $1 $3 }
-            | Expression '||' Expression { Pico.AbsPico.Concat $1 $3 }
+Expression3 : Ident { Pico.AbsPico.Var $1 }
+            | Value { Pico.AbsPico.EXPValue $1 }
 Value :: { Value }
 Value : String { Pico.AbsPico.STRValue $1 }
       | Integer { Pico.AbsPico.INTValue $1 }
       | 'None' { Pico.AbsPico.None }
       | 'Error' { Pico.AbsPico.Error }
-ListIdent :: { [Ident] }
-ListIdent : {- empty -} { [] } | Ident ListIdent { (:) $1 $2 }
 ListDecl :: { [Decl] }
 ListDecl : {- empty -} { [] }
          | Decl { (:[]) $1 }

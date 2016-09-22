@@ -1,5 +1,7 @@
-module Pico.Interpreter
- (execute, runProgram) where
+module Pico.Interpreter (
+  execute
+ ,runProgram
+ ,SymbolTable) where
 
 import System.IO
 
@@ -8,6 +10,7 @@ import Pico.AbsPico
 -- import Pico.Parser
 
 type Id = String
+type SymbolTable = [Decl]
 
 type Environment = [(Id, Value)]
 
