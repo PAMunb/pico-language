@@ -1,52 +1,36 @@
-PICO_PROGRAM. PROGRAM ::= "begin" DECLS SERIES "end.";
-DECLARATION0. DECLS ::= "declare" ID_TYPE_LIST SKIP ;
+Program. Program ::= "begin" "declare" [Decl] ";" [Stmt] "end." ;
 
-ID_LIST0. ID_TYPE_LIST ::= ID ":" TYPE ;
-ID_LIST1. ID_TYPE_LIST ::= ID ":" TYPE "," ID_TYPE_LIST ;
+Decl. Decl ::= Ident ":" Type ;
 
-TYPE_INTEGER. TYPE ::= "integer";
-TYPE_STRING. TYPE ::= "string";
+TInteger.Type ::= "integer" ;
+TString. Type ::= "string" ;
 
-SERIES0. SERIES ::= EMPTY;
-SERIES1. SERIES ::= STAT ";" SERIES;
-SERIES2. SERIES ::= SKIP;
+Assignment. Stmt ::= Ident ":=" Expression ;
+IfThenElse. Stmt ::= "if" "(" Expression ")" "then" Stmt "else" Stmt "fi" ;
+IfThen.     Stmt ::= "if" "(" Expression ")" "then" Stmt  "fi" ;
+While.      Stmt ::= "while" "(" Expression ")" "do" Stmt "od" ;
+Block.      Stmt ::= [Stmt] ;
 
-STAT0. STAT ::= ASSIGN;
-STAT1. STAT ::= IF;
-STAT2. STAT ::= WHILE;
 
-ASSIGN0. ASSIGN ::= ID ":=" EXP;
+GTE. Expression     ::= Expression ">" Expression1 ;
+LTE. Expression     ::= Expression "<" Expression1 ;
+Add. Expression1     ::= Expression1 "+" Expression2 ;
+Sub. Expression1     ::= Expression1 "-" Expression2 ;  
+Mult. Expression2    ::= Expression2 "*" Expression3 ;
+Div. Expression2    ::= Expression2 "/" Expression3 ;
+Pow. Expression2     ::= Expression2 "^" Expression3 ; 
+Concat. Expression2  ::= Expression2 "||" Expression3 ;
+Var. Expression3      ::= Ident ;
+EXPValue. Expression3 ::= Value ;
 
-IF0. IF ::= "if" EXP "then" SERIES "fi" ;
-IF1. IF ::= "if" EXP "then" SERIES "else" SERIES "fi" ;
+coercions Expression 3 ;
 
-WHILE0. WHILE ::= "while" EXP "do" SERIES "od" ;
-
-EXP0. EXP ::= ID ;
-EXP1. EXP ::= Integer ;
-EXP2. EXP ::= String ;
-EXP3. EXP ::= PLUS ;
-EXP4. EXP ::= CONC ;
-EXP5. EXP ::= "(" EXP ")" ;
-
-PLUS0. PLUS ::= EXP "+" EXP;
-CONC0. CONC ::= EXP "||" EXP;
+STRValue. Value ::= String ;
+INTValue. Value ::= Integer ;
+None.     Value ::= "None" ;
+Error.    Value ::= "Error" ; 
 
 
 
-ID0. ID ::= LETTER ID_CHARS;
-ID1. ID ::= ID_CHARS;
-
-ID_CHARS1. ID_CHARS ::= ID_CHAR ID_CHARS;
-ID_CHARS2. ID_CHARS ::= EMPTY;
-
-ID_CHAR1. ID_CHAR ::= LETTER;
-
-LETTERS. LETTER ::= Char ;
-
-EMPTY0. EMPTY ::= [Ident] ;
-separator Ident "";
-
-SKIP0. SKIP ::= ";";
-SKIP1. SKIP ::= EMPTY;
-SKIP2. SKIP ::= ";" SKIP;
+separator Decl "," ;
+separator Stmt ";"  ;
