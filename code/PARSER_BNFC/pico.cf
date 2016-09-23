@@ -1,0 +1,36 @@
+Program. Program ::= "begin" "declare" [Decl] ";" [Stmt] "end." ;
+
+Decl. Decl ::= Ident ":" Type ;
+
+TInteger.Type ::= "integer" ;
+TString. Type ::= "string" ;
+
+Assignment. Stmt ::= Ident ":=" Expression ;
+IfThenElse. Stmt ::= "if" "(" Expression ")" "then" Stmt "else" Stmt "fi" ;
+IfThen.     Stmt ::= "if" "(" Expression ")" "then" Stmt  "fi" ;
+While.      Stmt ::= "while" "(" Expression ")" "do" Stmt "od" ;
+Block.      Stmt ::= [Stmt] ;
+
+
+GTE. Expression     ::= Expression ">" Expression1 ;
+LTE. Expression     ::= Expression "<" Expression1 ;
+Add. Expression1     ::= Expression1 "+" Expression2 ;
+Sub. Expression1     ::= Expression1 "-" Expression2 ;  
+Mult. Expression2    ::= Expression2 "*" Expression3 ;
+Div. Expression2    ::= Expression2 "/" Expression3 ;
+Pow. Expression2     ::= Expression2 "^" Expression3 ; 
+Concat. Expression2  ::= Expression2 "||" Expression3 ;
+Var. Expression3      ::= Ident ;
+EXPValue. Expression3 ::= Value ;
+
+coercions Expression 3 ;
+
+STRValue. Value ::= String ;
+INTValue. Value ::= Integer ;
+None.     Value ::= "None" ;
+Error.    Value ::= "Error" ; 
+
+
+
+separator Decl "," ;
+separator Stmt ";"  ;
