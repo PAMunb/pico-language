@@ -9,6 +9,6 @@ begin
   
   while (y-1) do
     output := output + x;
-    y := y - 1
-  od.
+    y := y - 1;
+  od
 end.

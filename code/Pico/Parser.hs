@@ -69,7 +69,7 @@ while =
   token "do" >>= \_     ->
   blanks >>= \_          -> 
   statements >>= \stmts  ->
-  token "od." >>= \_      -> 
+  token "od" >>= \_      -> 
   return $ While cond (Block stmts)
 
 -- | A parser for a single declaration. 

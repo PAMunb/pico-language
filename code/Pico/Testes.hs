@@ -37,7 +37,8 @@ testSuite = TestList [
   TestLabel "whileTest1" whileTest1,
   TestLabel "whileTest2" whileTest2,
   TestLabel "parseTest1" parseTest1,
-  TestLabel "parseTest2" parseTest2
+  TestLabel "parseTest2" parseTest2,
+  TestLabel "parseBNFC" parseBNFC
   ]
 
 -- | Variables for sum and sub tests

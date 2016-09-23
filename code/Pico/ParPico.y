@@ -79,17 +79,21 @@ Stmt : Ident ':=' Expression { Pico.AbsPico.Assignment $1 $3 }
 Expression :: { Expression }
 Expression : Expression '>' Expression1 { Pico.AbsPico.GTE $1 $3 }
            | Expression '<' Expression1 { Pico.AbsPico.LTE $1 $3 }
+           | Expression1 { $1 }
 Expression1 :: { Expression }
 Expression1 : Expression1 '+' Expression2 { Pico.AbsPico.Add $1 $3 }
             | Expression1 '-' Expression2 { Pico.AbsPico.Sub $1 $3 }
+            | Expression2 { $1 }
 Expression2 :: { Expression }
 Expression2 : Expression2 '*' Expression3 { Pico.AbsPico.Mult $1 $3 }
             | Expression2 '/' Expression3 { Pico.AbsPico.Div $1 $3 }
             | Expression2 '^' Expression3 { Pico.AbsPico.Pow $1 $3 }
             | Expression2 '||' Expression3 { Pico.AbsPico.Concat $1 $3 }
+            | Expression3 { $1 }
 Expression3 :: { Expression }
 Expression3 : Ident { Pico.AbsPico.Var $1 }
             | Value { Pico.AbsPico.EXPValue $1 }
+            | '(' Expression ')' { $2 }
 Value :: { Value }
 Value : String { Pico.AbsPico.STRValue $1 }
       | Integer { Pico.AbsPico.INTValue $1 }
