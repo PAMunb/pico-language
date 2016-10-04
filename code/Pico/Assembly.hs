@@ -3,6 +3,13 @@ module Pico.Assembly where
 type Label = String
 type Name = String
 
+-- TODO: define instructions for expressions:
+---- GTE
+---- LTE
+---- Mult
+---- Div
+---- Pow
+
 data Instr
     = DclInt Name -- Reserve a memory location for an integer variable
     | DclStr Name -- Reserve a memory location for a string variable
