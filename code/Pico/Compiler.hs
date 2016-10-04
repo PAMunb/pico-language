@@ -33,8 +33,8 @@ compileDeclarations :: [Decl] -> LabeledInstructions
 -- mapM map each element to a monadic action and collect the results.
 compileDeclarations decls = mapM compileDeclaration decls
   where
-    compileDeclaration (ident, TInteger) = return (DclInt ident)
-    compileDeclaration (ident, TString) = return (DclStr ident)
+    compileDeclaration (Decl ident TInteger) = return (DclInt ident)
+    compileDeclaration (Decl ident TString) = return (DclStr ident)
 
 compileStatements :: [Stmt] -> LabeledInstructions
 -- '>>=': Sequentially compose two actions, passing values produced by the first as an argument to the second
@@ -44,14 +44,14 @@ compileStatements stmts = mapM compileStmt stmts >>= return . concat
     
     compileStmt (Assignment ident exp) = do
       let expCompiled = compileExpression exp
-      return ([LValue ident] ++ expCompiled ++ [AssignOp])
+      return ([Lvalue ident] ++ expCompiled ++ [AssignOp])
     
     compileStmt (IfThenElse exp stmt1 stmt2) = do
       elseLabel <- nextLabel
       endLabel <- nextLabel
       let expCompiled = compileExpression exp
-      stmt1Compiled <- compileStatement stmt1
-      stm2Compiled <- compileStatement stm2
+      stmt1Compiled <- compileStmt stmt1
+      stmt2Compiled <- compileStmt stmt2
       return ( 
                 expCompiled
                 ++ [GoZero elseLabel]
@@ -64,7 +64,7 @@ compileStatements stmts = mapM compileStmt stmts >>= return . concat
     compileStmt (IfThen exp stmt) = do
       endLabel <- nextLabel
       let expCompiled = compileExpression exp
-      stmtCompiled <- compileStatement stmt
+      stmtCompiled <- compileStmt stmt
       return (
                 expCompiled
                 ++ stmtCompiled
@@ -86,7 +86,7 @@ compileStatements stmts = mapM compileStmt stmts >>= return . concat
     
     compileStmt (Block stmts) = do
       stmtsCompiled <- compileStatements stmts
-      return [ stmtsCompiled ]
+      return stmtsCompiled
 
 -- TODO: Compile expressions that are not yet defined in Assembly module      
 compileExpression :: Expression -> [Instr]
