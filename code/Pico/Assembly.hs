@@ -15,7 +15,7 @@ type Label = String
 data Instr
     = DclInt Ident -- Reserve a memory location for an integer variable
     | DclStr Ident -- Reserve a memory location for a string variable
-    | PushNat Int -- Push integer constant on the stack
+    | PushNat Integer -- Push integer constant on the stack
     | PushStr String -- Push string constant on the stack
     | Rvalue Ident -- Push the value of a variable on the stack
     | Lvalue Ident -- Push the address of a variable on the stack
