@@ -3,9 +3,9 @@
 CC=gcc
 CFLAGS=-Wall -std=c99
 LDFLAGS=
-OBJ=picoi.o
+OBJ=picovm.o
 
-picoi: $(OBJ)
+picovm: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o : %.c
@@ -13,4 +13,4 @@ picoi: $(OBJ)
 
 .PHONY: clean
 clean:
-	rm *.o picoi
+	rm *.o picovm
