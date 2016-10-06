@@ -16,9 +16,8 @@ pushNat(10),
 pushNat(5),
 sub2()
 
-No comments ('//' nor '#') or nothing beyond the this strict definition
-will be accepted, as the ad-hoc parser is very weak.
+No comments ('//' nor '#') or nothing beyond this strict definition
+will be accepted, as the ad-hoc parser is still very weak.
 
 Authors:
 Rafael Diniz <rafael@riseup.net>
-
