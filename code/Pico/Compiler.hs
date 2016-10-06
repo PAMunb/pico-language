@@ -88,7 +88,6 @@ compileStatements stmts = mapM compileStmt stmts >>= return . concat
       stmtsCompiled <- compileStatements stmts
       return stmtsCompiled
 
--- TODO: Compile expressions that are not yet defined in Assembly module      
 compileExpression :: Expression -> [Instr]
 
 compileExpression (EXPValue value) = do
@@ -99,5 +98,10 @@ compileExpression (EXPValue value) = do
 compileExpression (Var ident) = [Rvalue ident]
 compileExpression (Add e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [AddOp]
 compileExpression (Sub e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [SubOp]
+compileExpression (Mult e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [MultOp]
+compileExpression (Div e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [DivOp]
+compileExpression (Pow e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [PowOp]
+compileExpression (GTE e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [GTEOp]
+compileExpression (LTE e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [GTEOp]
 compileExpression (Concat e1 e2) = compileExpression e1 ++ compileExpression e2 ++ [ConcOp]
 

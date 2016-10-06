@@ -5,13 +5,6 @@ import Pico.AbsPico
 
 type Label = String
 
--- TODO: define instructions for expressions:
----- GTE
----- LTE
----- Mult
----- Div
----- Pow
-
 data Instr
     = DclInt Ident -- Reserve a memory location for an integer variable
     | DclStr Ident -- Reserve a memory location for a string variable
@@ -22,6 +15,11 @@ data Instr
     | AssignOp -- Assign value on top, to variable at address top-1
     | AddOp -- Replace top two stack values by their sum
     | SubOp -- Replace top two stack values by their difference
+    | PowOp -- Replace top stack value by power
+    | MultOp -- Replace top two stack values by their multiplication
+    | DivOp -- Replace top two stack values by their division
+    | GTEOp -- Replace top two stack values by greater than or equal operation
+    | LTEOp -- Replace top two stack values by less than or equal operation
     | ConcOp -- Replace top two stack values by their concatenation
     | Label Label -- Associate a label with the next instruction
     | Go Label -- Go to instruction with given label
