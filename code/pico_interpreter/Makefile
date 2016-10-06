@@ -8,7 +8,7 @@ OBJ=picovm.o
 picovm: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
-%.o : %.c
+%.o : %.c %.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean

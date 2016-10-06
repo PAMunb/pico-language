@@ -1,68 +1,5 @@
-// C99 compliant pico intermediate assembly Virtual Machine.
+// C99 compliant pico assembly Virtual Machine.
 // Original author: Rafael Diniz
-
-/**************************************************************************/
-/***************** Intruction SET *****************************************/
-
-// No Operation
-#define NOOP 0
-
-// Declare Integer (MEM)
-// dclNat("Var_Name")
-#define DCLNAT 1
-
-// Declare String (MEM)
-// dclStr("Var_Name")
-#define DCLSTR 2
-
-// Push Integer to stack (stack++)
-// pushNat(Int)
-#define PUSHNAT 3
-
-// Push String to stack (*stack++)
-// pushStr("String")
-#define PUSHSTR 4
-
-// Push the value of a variable to stack (stack++)
-// rvalue("Var_Name")
-#define RVALUE 5
-
-// Push the address of a variable to stack (stack++)
-// lvalue("Var_Name")
-#define LVALUE 6
-
-// Assigns value on top of the stack to variable at address top-1 (stack-2)
-// assign()
-#define ASSIGN 7
-
-// Sum top 2 stack values of stack and keep the sum (stack--)
-// add2()
-#define ADD2 8
-
-// Subtraction of top 2 slack values (stack--)
-// sub2()
-#define SUB2 9
-
-// Concatenates top 2 stack values (stack--)
-// conc2()
-#define CONC2 10
-
-// Label to next instruction
-// label("Label")
-#define LABEL 11
-
-// Inconditional GOTO
-// go("Label")
-#define GO 12
-
-// Jump If Zero (stack--)
-// gotrue("Label")
-#define GOTRUE 13
-
-// Jump If Not Zero (stack--)
-// gofalse("Label")
-#define GOFALSE 14
-/**************************************************************************/
 
 // C headers
 #include <unistd.h>
@@ -71,39 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
-#define MAX_NAME_SIZE 256
+#include "picovm.h"
 
-// Instruction arguments
-union args {
-    int constant;
-    char var_name[MAX_NAME_SIZE];
-    char label[MAX_NAME_SIZE];
-    char string[MAX_NAME_SIZE];
-};
-
-// Our instruction structure
-typedef struct {
-    int instr_id;
-    union args arg;
-} op;
-
-// Our memory unit for integers, the structure for the memory
-// is a linked list, with mem_head being the head.
-typedef struct memory_int{
-    char id[MAX_NAME_SIZE];
-    int val;
-    struct memory_int *next;
-} mem_unit;
-
-// the stack structure, also a linked list, linked in a top-down way.
-typedef struct stack_str{
-    int val;
-    char *str;
-    struct stack_str *previous;
-} stack_unit;
-
-// Global variables
+// Global variables //
 // instruction pointer
 int ip = 0;
 // stack
@@ -116,10 +25,13 @@ mem_unit *labels_head = NULL;
 op *text;
 // enable verbose output
 bool verbose = false;
+// enable interactive mode
+bool interactive = false;
 
+// Instruction handlers
 int run_noop(op instr){
     // No Operation
-    return ip+1;
+    return ip;
 }
 
 int run_dclnat(op instr){
@@ -132,6 +44,7 @@ int run_dclnat(op instr){
 
     var = (mem_unit *) malloc (sizeof(mem_unit));
     var->val = 0;
+    var->str = NULL;
     strcpy (var->id, instr.arg.var_name);
     var->next = NULL;
 
@@ -148,9 +61,26 @@ int run_dclnat(op instr){
 }
 
 int run_dclstr(op instr){
+    mem_unit *temp;
+    mem_unit *var;
 
-    if (verbose){
-        fprintf(stderr, "dclStr Not Implemented Yet\n");
+    if(verbose){
+        fprintf(stderr, "dclStr %s\n", instr.arg.var_name);
+    }
+
+    var = (mem_unit *) malloc (sizeof(mem_unit));
+    var->val = 0;
+    var->str = NULL;
+    strcpy (var->id, instr.arg.var_name);
+    var->next = NULL;
+
+    if (mem_head == NULL) {
+        mem_head = var;
+    } else {
+        temp = mem_head;
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = var;
     }
 
     return ip+1;
@@ -177,9 +107,20 @@ int run_pushnat(op instr){
 }
 
 int run_pushstr(op instr){
+    stack_unit *stack = (stack_unit *) malloc(sizeof(stack_unit));
 
     if (verbose){
-        fprintf(stderr, "pushStr Not Implemented Yet\n");
+        fprintf(stderr, "pushStr %s\n", instr.arg.string);
+    }
+
+    stack->str = instr.arg.string;
+
+    if (stack_top == NULL){
+        stack->previous = NULL;
+        stack_top = stack;
+    } else {
+        stack->previous = stack_top;
+        stack_top = stack;
     }
 
     return ip+1;
@@ -203,6 +144,7 @@ int run_rvalue(op instr){
         if (var->next == NULL){
             goto bail;
         }
+        var = var->next;
     }
 
     // put it in stack
@@ -241,6 +183,7 @@ int run_lvalue(op instr){
         if (var->next == NULL){
             goto bail;
         }
+        var = var->next;
     }
 
     // put it in stack
@@ -260,28 +203,61 @@ int run_lvalue(op instr){
 }
 
 int run_assign(op instr){
+    stack_unit *stack = stack_top->previous;
+    mem_unit *var = mem_head;
 
     if (verbose){
-        fprintf(stderr, "assign Not Implemented Yet\n");
+        fprintf(stderr, "assign\n");
     }
+
+    // find the address of the variable in the memory
+    for (int i = 0; i < stack->val; i++){
+        var = var->next;
+    }
+
+    // assign value to variable
+    var->val = stack_top->val;
+
+    // clean up stack
+    free(stack_top);
+    stack_top = stack;
+    stack = stack_top->previous;
+    free(stack_top);
+    stack_top = stack;
 
     return ip+1;
 }
 
 int run_add2(op instr){
+    stack_unit *stack = stack_top->previous;
 
     if (verbose){
-        fprintf(stderr, "add2 Not Implemented Yet\n");
+        fprintf(stderr, "add2 %"PRId64" %"PRId64"\n", stack_top->val, stack->val);
     }
+
+    // sum
+    stack->val = stack->val + stack_top->val;
+
+    // clean up stack
+    free(stack_top);
+    stack_top = stack;
 
     return ip+1;
 }
 
 int run_sub2(op instr){
+    stack_unit *stack = stack_top->previous;
 
     if (verbose){
-        fprintf(stderr, "sub2 Not Implemented Yet\n");
+        fprintf(stderr, "sub2 %"PRId64" %"PRId64"\n", stack_top->val, stack->val);
     }
+
+    // subtraction
+    stack->val = stack->val - stack_top->val;;
+
+    // clean up stack
+    free(stack_top);
+    stack_top = stack;
 
     return ip+1;
 }
@@ -296,38 +272,103 @@ int run_conc2(op instr){
 }
 
 int run_go(op instr){
+    mem_unit *label = labels_head;
 
     if (verbose){
-        fprintf(stderr, "go Not Implemented Yet\n");
+        fprintf(stderr, "go %s\n", instr.arg.label);
     }
 
-    return ip+1;
+    if (label == NULL){
+    bail:
+        fprintf(stderr, "Error executing go()\n");
+        return ip+1;
+    }
+
+
+    while (strcmp(label->id, instr.arg.label)){
+        if (label->next == NULL){
+            goto bail;
+        }
+        label = label->next;
+    }
+    return label->val;
 }
 
 int run_gotrue(op instr){
+    mem_unit *label = labels_head;
+    stack_unit *stack = stack_top->previous;
+    int ip_next = 0;
 
     if (verbose){
-        fprintf(stderr, "gotrue Not Implemented Yet\n");
+        fprintf(stderr, "gotrue %s\n", instr.arg.label);
     }
 
-    return ip+1;
+    if (label == NULL){
+    bail:
+        fprintf(stderr, "Error executing gotrue()\n");
+        return ip+1;
+    }
+
+    // if stack is 0
+//    if (stack_top->val == 0){
+    if (stack_top->val != 0){
+        while (strcmp(label->id, instr.arg.label)){
+            if (label->next == NULL){
+                goto bail;
+            }
+            label = label->next;
+        }
+        ip_next = label->val;
+    } else {
+        ip_next = ip + 1;
+    }
+
+    free(stack_top);
+    stack_top = stack;
+
+    return ip_next;
 }
 
 int run_gofalse(op instr){
+    mem_unit *label = labels_head;
+    stack_unit *stack = stack_top->previous;
+    int ip_next = 0;
 
     if (verbose){
-        fprintf(stderr, "gofalse Not Implemented Yet\n");
+        fprintf(stderr, "gofalse %s\n", instr.arg.label);
     }
 
-    return ip+1;
+    if (label == NULL){
+    bail:
+        fprintf(stderr, "Error executing gofalse()\n");
+        return ip+1;
+    }
+
+    // if stack is != 0
+//    if (stack_top->val != 0){
+    if (stack_top->val == 0){
+        while (strcmp(label->id, instr.arg.label)){
+            if (label->next == NULL){
+                goto bail;
+            }
+            label = label->next;
+        }
+        ip_next = label->val;
+    } else {
+        ip_next = ip + 1;
+    }
+
+    free(stack_top);
+    stack_top = stack;
+
+    return ip_next;
 }
 
+// adds instruction to the executable (text) area of the memory.
 bool stack_instruction(op instr){
     static int instr_nr = 0;
     static op last_label;
     static bool latest_is_label = false;
-
-    printf("instr: %d\n", instr.instr_id);
 
     if (instr.instr_id == LABEL){
         latest_is_label = true;
@@ -359,6 +400,7 @@ bool stack_instruction(op instr){
     return true;
 }
 
+// Gets next instruction from input
 op get_instruction(FILE *fin) {
     char instruction[1024];
     op instr;
@@ -379,9 +421,6 @@ op get_instruction(FILE *fin) {
     if (ret == EOF){
         return instr;
     }
-
-    if (verbose)
-        fprintf(stderr, "OP: %s\n", instruction);
 
     if (strstr(instruction, "dclNat"))
         instr.instr_id = DCLNAT;
@@ -480,11 +519,17 @@ int main(int argc, char **argv) {
     FILE *fin = NULL;
     bool run = true;
 
+    fprintf(stderr, "=====================================================================\n");
+    fprintf(stderr, "picovm 0.1\nIf you don't know how to use picovm, type %s -h for help.\n", argv[0]);
+    fprintf(stderr, "=====================================================================\n\n");
 // Command line parsing
     int c;
-    while ((c = getopt (argc, argv, "vi:")) != -1){
+    while ((c = getopt (argc, argv, "gvi:")) != -1){
         switch (c)
         {
+        case 'g':
+            interactive = true;
+            break;
         case 'v':
             verbose = true;
             break;
@@ -492,14 +537,18 @@ int main(int argc, char **argv) {
             file_name = optarg;
             break;
         default:
+        bail:
             fprintf(stderr, "picovm syntax:\n");
-            fprintf(stderr, "\tpicovm [-v] [-i input.asm]\n");
+            fprintf(stderr, "\tpicovm [-v] [-g] [-i input.asm]\n");
             fprintf(stderr, "\t-v              Enables verbose.\n");
+            fprintf(stderr, "\t-g              Enables interactive mode (use with -i).\n");
             fprintf(stderr, "\t-i file_name... Execute instructions from file, instead of stdin.\n");
             return EXIT_FAILURE;
         }
     }
 
+    if (interactive && !file_name)
+        goto bail;
     fin = (file_name)? fopen(file_name, "r") : stdin;
 
     // Gets the size of the executable
@@ -534,45 +583,30 @@ int main(int argc, char **argv) {
     while (run) {
         op instr = get_instruction(fin);
 
-        // here we allow stacking the NOOP in order to
-        // allow labeling the last instruction.
+        // here we allow stacking the NOOP as last instruction in order to
+        // allow label() as last command in input assembly.
         stack_instruction(instr);
-
         if (instr.instr_id == NOOP) {
             run = false;
             continue;
         }
     }
 
-#if 1
-    if (verbose) {
-        // prints the executable area
+    // prints the executable area
+    if (verbose){
         for (int i = 0; i < instruction_count; i++){
             fprintf(stderr,"OP: %d\n", text[i].instr_id);
         }
-
         fprintf(stderr, "\n");
-        mem_unit *temp;
-
-        // prints the memory
-        temp = mem_head;
-        while (temp){
-            fprintf(stderr, "memory id: %s val: %d\n", temp->id, temp->val);
-            temp = temp->next;
-        }
-        // prints the labels list
-        temp = labels_head;
-        while (temp){
-            fprintf(stderr, "label id: %s val: %d instr: %d\n", temp->id, temp->val, text[temp->val].instr_id);
-            temp = temp->next;
-        }
     }
-#endif
 
     // Run the code
     run = true;
     while(run){
-
+        if (interactive){
+            fprintf(stderr, "Press any key to execute the next instruction...\n");
+            getchar();            getchar();
+        }
         switch(text[ip].instr_id){
         case NOOP:
             ip = run_noop(text[ip]);
@@ -621,12 +655,51 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Internal error.\n");
         }
 
+        if (verbose){
+            stack_unit *stk;
+            // prints the stack
+            stk = stack_top;
+            fprintf(stderr, "IP: %d\n", ip);
+            while (stk){
+                fprintf(stderr, "stack val: %"PRId64" string: %s\n", stk->val, stk->str);
+                stk = stk->previous;
+            }
+            // prints the memory
+            mem_unit *temp;
+            temp = mem_head;
+            while (temp){
+                fprintf(stderr, "memory id: %s val: %"PRId64"\n", temp->id, temp->val);
+                temp = temp->next;
+            }
+            // prints the labels list
+            temp = labels_head;
+            while (temp){
+                fprintf(stderr, "label id: %s val: %"PRId64" instr: %d\n", temp->id, temp->val, text[temp->val].instr_id);
+                temp = temp->next;
+            }
+        }
+
+    }
+    // print the variable output
+    mem_unit *var = mem_head;
+    // find the variable in the memory
+    if (var == NULL){
+        fprintf(stderr, "No output variable declared.\n");
+    } else {
+        while (strcmp(var->id, "output")){
+            if (var->next == NULL){
+                fprintf(stderr, "No output variable declared.\n");
+                break;
+            }
+            var = var->next;
+        }
+        fprintf(stderr, "output = %"PRId64"\n", var->val);
     }
 
 
     // Deallocate memory
 
-    // output the variable output
+
 
     if (fin)
         fclose(fin);
