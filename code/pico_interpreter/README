@@ -1,0 +1,23 @@
+PicoVM is an assembly PICO VM written in C99.
+
+To compile, type:
+make
+
+PicoVM syntax:
+picovm [-v] [-g] [-i input.asm]
+       -v              Enables verbose.
+       -g              Enables interactive mode (use with -i).
+       -i file_name... Execute instructions from file, instead of stdin.
+
+The format of input file includes intructions that are comma
+separated, one per line, being the latest instruction without comma. Eg.
+
+pushNat(10),
+pushNat(5),
+sub2()
+
+No comments ('//' nor '#') or nothing beyond this strict definition
+will be accepted, as the ad-hoc parser is still very weak.
+
+Authors:
+Rafael Diniz <rafael@riseup.net>
